@@ -1,0 +1,44 @@
+### Register
+
+POST http://localhost:8000/auth/users/
+Content-Type: application/json
+
+{
+    "email": "admin@admin.com",
+    "name": "test",
+    "password": "TestPass123",
+    "re_password": "TestPass123"
+}
+
+###
+
+### Login
+POST http://localhost:8000/auth/jwt/create/
+Content-Type: application/json
+
+{
+    "email": "admin@admin.com",
+    "password": "TestPass123"
+}
+
+###
+
+
+
+### get info
+
+GET http://localhost:8000/auth/users/me
+Content-Type: application/json
+Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE3NDU1NzQ5LCJpYXQiOjE3MTc0NTU0NDksImp0aSI6IjI2Yjg4MGU5MzkwYjQ4OWQ4ZTA1YjFhNDQyOTEyMDc1IiwidXNlcl9pZCI6MX0.i32MpfuqUk9XgCpUgCbCNY8l3JDw8TKt00xoqR4Mc1E
+
+{}
+
+
+### Refresh token
+
+POST http://localhost:8000/auth/jwt/refresh-token/
+Content-Type: application/json
+
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcxNzU0Mzg3OSwiaWF0IjoxNzE3NDU3NDc5LCJqdGkiOiI3MWI2ZTVjMzM1OTk0ZDU3YWMwNjFhY2IwNDEwY2Y4YyIsInVzZXJfaWQiOjF9.y0-KUZsw5QJTcLIQ0B8vkEym_-QoJ-WDPRrTrhuXB6Y"
+}
