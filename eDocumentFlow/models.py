@@ -8,14 +8,16 @@ User = get_user_model()
 # Create your models here.
 # TODO - correct updated_ad into updated_at
 class Document(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     documentNumber = models.BigIntegerField(null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     file = models.FileField(upload_to='documents/', null=True, blank=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     comment = models.TextField(null=True, blank=True)
-    have_to_sign_users = models.ManyToManyField(User, related_name='have_to_sign_users')
-    have_to_verify_users = models.ManyToManyField(User, related_name='have_to_verify_users')
+    have_to_sign_users = models.ManyToManyField(User, related_name='have_to_sign_users', blank=True)
+    have_to_verify_users = models.ManyToManyField(User, related_name='have_to_verify_users', blank=True)
+    verified_by_users = models.ManyToManyField(User, related_name='verified_by_users', blank=True)
+    signed_by_users = models.ManyToManyField(User, related_name='signed_by_users', blank=True)
     is_signed = models.BooleanField(default=False, blank=True, null=True)
     is_verified = models.BooleanField(default=False, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,7 +28,7 @@ class Document(models.Model):
 
 
 class TaskRegisteringEvent(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     taskType = models.CharField(max_length=255, )
     sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     recipients = models.ManyToManyField(User, related_name='assigned_tasks')
@@ -35,7 +37,7 @@ class TaskRegisteringEvent(models.Model):
 
 
 class DocumentSignEvent(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     signer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, null=False)
     task = models.ForeignKey(TaskRegisteringEvent, on_delete=models.SET_NULL, null=True)
@@ -43,7 +45,7 @@ class DocumentSignEvent(models.Model):
 
 
 class DocumentVerifyEvent(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     verifier = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     document = models.ForeignKey(Document, on_delete=models.CASCADE, null=False)
     task = models.ForeignKey(TaskRegisteringEvent, on_delete=models.SET_NULL, null=True)
