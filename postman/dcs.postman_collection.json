@@ -1,0 +1,528 @@
+{
+	"info": {
+		"_postman_id": "a0ad749f-6077-42f1-848a-6d34d9001da8",
+		"name": "dcs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17649205"
+	},
+	"item": [
+		{
+			"name": "SimpleLogin",
+			"item": [
+				{
+					"name": "User Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"dito.gulua03@gmail.com\",\n    \"name\": \"dito gulua\",\n    \"password\": \"MyAwesommePassword123\",\n    \"re_password\": \"MyAwesommePassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"auth",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"JWTAccessToken\", pm.response.json().access);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@admin.com\",\n    \"password\": \"TestPass123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/api/accounts/auth/jwt/create/",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"accounts",
+								"auth",
+								"jwt",
+								"create",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Token",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcxNzQyNzA2MCwiaWF0IjoxNzE3MzQwNjYwLCJqdGkiOiI3MTYxMTMyMjY4ZTI0MDQ2YjEwODFmMDE2YzhlOTU0ZiIsInVzZXJfaWQiOjN9.Gv-bt18SArqXdcyQcbrbaeYGVH56krBMV5hh-PD1-uQ\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8000/auth/jwt/refresh",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"auth",
+								"jwt",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user info",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "logout",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "DocumentFlow",
+			"item": [
+				{
+					"name": "Upload Document",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							},
+							{
+								"key": "Authorization",
+								"value": "JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzE4MzA5MDI0LCJpYXQiOjE3MTgzMDU0MjQsImp0aSI6IjlhNDJjNGZmNjBmYTRjYzM4MjllZGJlOTE1ZGJkYWE3IiwidXNlcl9pZCI6M30.5o_AYyzyzF6Q2yOrkre6Y_msmZUN_R-_UFX5JqRGGbY"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/home/loti/Documents/DCS/requirements.txt"
+								},
+								{
+									"key": "title",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "have_to_sign_users",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "have_to_verify_users",
+									"value": "3",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/upload/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"upload",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Document",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"document\": \"7b48f2b1-606a-4dd5-9d9e-e608adb0d49c\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/verify/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"verify",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign Document",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"document\": \"7b48f2b1-606a-4dd5-9d9e-e608adb0d49c\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/sign/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"sign",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Document List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/list/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"list",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single document",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/7b48f2b1-606a-4dd5-9d9e-e608adb0d49c/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"7b48f2b1-606a-4dd5-9d9e-e608adb0d49c",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Document",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"documentNumber\": 1298392,\n    \"comment\": \"HELEHASDKAJSDNKAJDN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/eDocumentFlow/document/7b48f2b1-606a-4dd5-9d9e-e608adb0d49c/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"eDocumentFlow",
+								"document",
+								"7b48f2b1-606a-4dd5-9d9e-e608adb0d49c",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.request.headers.add({",
+							"    key: \"Content-Type\",",
+							"    value: \"application/json\"",
+							"})",
+							"",
+							"pm.request.headers.add({",
+							"    key: \"Authorization\",",
+							"    value: \"JWT \" + pm.environment.get(\"JWTAccessToken\")",
+							"})",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "User Account Verification",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"uid\": \"Mw\",\n    \"token\": \"c7zzzf-ab72dff4f9a16f5f1916c8149abd49ee\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/auth/users/activation/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"users",
+						"activation",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"dito.gulua03@gmail.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/auth/users/reset_password/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"users",
+						"reset_password",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Password Confirm",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"uid\": \"Mw\",\n    \"token\": \"c802by-c03be8fbdc1e204fa0222a4233d27de2\",\n    \"new_password\": \"ThisIncrediblePassword321\",\n    \"re_new_password\": \"ThisIncrediblePassword321\" \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8000/auth/users/reset_password_confirm/",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"users",
+						"reset_password_confirm",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
