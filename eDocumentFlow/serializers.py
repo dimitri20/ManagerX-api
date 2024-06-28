@@ -3,10 +3,6 @@ from .models import Document, DocumentSignEvent, DocumentVerifyEvent, TaskRegist
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-    # owner = serializers.PrimaryKeyRelatedField(read_only=False)
-    attachments = serializers.ListField(
-        child=serializers.FileField(allow_empty_file=False)
-    )
 
     class Meta:
         model = Document
