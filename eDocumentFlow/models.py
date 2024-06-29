@@ -28,10 +28,33 @@ class Document(models.Model):
 
 
 class TaskRegisteringEvent(models.Model):
+
+    class TaskType(models.TextChoices):
+        VERIFY = 'VERIFY',
+        SIGN = 'SIGN',
+
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    taskType = models.CharField(max_length=255, )
-    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    recipients = models.ManyToManyField(User, related_name='assigned_tasks')
+    taskType = models.CharField(max_length=255, choices=TaskType.choices, null=False, blank=False)
+    sender = models.ForeignKey(User, related_name="sender", on_delete=models.SET_NULL, null=True)
+    recipient = models.ForeignKey(User, related_name="recipient", on_delete=models.SET_NULL, null=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    updated_ad = models.DateTimeField(auto_now=True)
+
+
+class SendDocumentToVerifyEvent(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    sender = models.ForeignKey(User, related_name="sendDocumentToVerify_sender", on_delete=models.SET_NULL, null=True)
+    recipient = models.ForeignKey(User, related_name="sendDocumentToVerify_recipient", on_delete=models.SET_NULL, null=True)
+    document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    updated_ad = models.DateTimeField(auto_now=True)
+
+
+class SendDocumentToSignEvent(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    sender = models.ForeignKey(User, related_name="sendDocumentToSign_sender", on_delete=models.SET_NULL, null=True)
+    recipient = models.ForeignKey(User, related_name="sendDocumentToSign_recipient", on_delete=models.SET_NULL, null=True)
+    document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True)
     sent_at = models.DateTimeField(auto_now_add=True)
     updated_ad = models.DateTimeField(auto_now=True)
 
@@ -50,7 +73,6 @@ class DocumentVerifyEvent(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, null=False)
     task = models.ForeignKey(TaskRegisteringEvent, on_delete=models.SET_NULL, null=True)
     verified_at = models.DateTimeField(auto_now_add=True)
-
 
 class DocumentFlow(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)

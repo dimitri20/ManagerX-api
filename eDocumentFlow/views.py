@@ -7,8 +7,8 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import DocumentSerializer, DocumentSignEventSerializer, DocumentVerifyEventSerializer, \
-    TaskRegisterEventSerializer
-from .models import Document
+    TaskRegisterEventSerializer, SendDocumentToVerifyEventSerializer, SendDocumentToSignEventSerializer
+from .models import Document, TaskRegisteringEvent
 from .utils import document_is_verified_by_everyone, document_is_signed_by_everyone
 
 User = get_user_model()
@@ -42,6 +42,7 @@ class SignDocumentView(CreateAPIView):
 
             document = serializer.validated_data['document']
             document.signed_by_users.add(request.user)
+            document.have_to_sign_users.remove(request.user)
             document.is_signed = document_is_signed_by_everyone(document)
             document.save()
 
@@ -82,6 +83,7 @@ class RegisterTaskView(CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.validated_data['sender'] = request.user
+
             serializer.save()
             return Response(
                 serializer.data,
@@ -90,6 +92,50 @@ class RegisterTaskView(CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class SendToVerifyDocumentView(CreateAPIView):
+    serializer_class = SendDocumentToVerifyEventSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.validated_data['sender'] = request.user
+            serializer.save()
+
+            document = serializer.validated_data['document']
+            # if request.validated_data['recipient'] in document.verified_by_users:
+            #     return Response("User already verified document.", status=status.HTTP_400_BAD_REQUEST)
+
+            document.have_to_verify_users.add(request.user)
+            document.save()
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SendToSignDocumentView(CreateAPIView):
+    serializer_class = SendDocumentToSignEventSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.validated_data['sender'] = request.user
+            serializer.save()
+
+            document = serializer.validated_data['document']
+            # if request.validated_data['recipient'] in document.verified_by_users:
+            #     return Response("User already verified document.", status=status.HTTP_400_BAD_REQUEST)
+
+            document.have_to_sign_users.add(request.user)
+            document.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
