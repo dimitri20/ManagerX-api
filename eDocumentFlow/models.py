@@ -24,7 +24,7 @@ class Document(models.Model):
     updated_ad = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title}, {self.file.name.split("/")[-1]}"
+        return self.title + ", " + self.file.name.split("/")[-1]
 
 
 class TaskRegisteringEvent(models.Model):
