@@ -79,7 +79,6 @@ class RegisterTaskView(CreateAPIView):
     serializer_class = TaskRegisterEventSerializer
 
     def post(self, request, *args, **kwargs):
-        # TODO - assume request.user would be set to the authenticated user
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.validated_data['sender'] = request.user
@@ -90,6 +89,8 @@ class RegisterTaskView(CreateAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class DocumentDetailView(APIView):
