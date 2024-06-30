@@ -1,15 +1,19 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth import get_user_model
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import DocumentSerializer, DocumentSignEventSerializer, DocumentVerifyEventSerializer, \
     TaskRegisterEventSerializer, SendDocumentToVerifyEventSerializer, SendDocumentToSignEventSerializer
-from .models import Document, TaskRegisteringEvent
-from .utils import document_is_verified_by_everyone, document_is_signed_by_everyone
+from .models import Document, TaskRegisteringEvent, SendDocumentToVerifyEvent, SendDocumentToSignEvent
+from .utils import document_is_verified_by_everyone, document_is_signed_by_everyone, filter_documents_by_sender_and_receiver
+from .filters import DocumentsFilter
+from .paginations import DocumentLimitOffsetPagination
 
 User = get_user_model()
 
@@ -92,6 +96,7 @@ class RegisterTaskView(CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class SendToVerifyDocumentView(CreateAPIView):
     serializer_class = SendDocumentToVerifyEventSerializer
 
@@ -114,6 +119,7 @@ class SendToVerifyDocumentView(CreateAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SendToSignDocumentView(CreateAPIView):
     serializer_class = SendDocumentToSignEventSerializer
@@ -138,7 +144,6 @@ class SendToSignDocumentView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class DocumentDetailView(APIView):
     serializer_class = DocumentSerializer
 
@@ -158,10 +163,13 @@ class DocumentDetailView(APIView):
         return Response(serializer.data)
 
 
-class DocumentListView(APIView):
+class DocumentListView(ListAPIView):
     serializer_class = DocumentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = DocumentsFilter
+    pagination_class = DocumentLimitOffsetPagination
+    ordering_fields = '__all__'
 
     def get(self, request, *args, **kwargs):
-        documents = Document.objects.all()
-        serializer = DocumentSerializer(documents, many=True)
-        return Response(serializer.data)
+        self.queryset = filter_documents_by_sender_and_receiver(request)
+        return super().get(request, *args, **kwargs)

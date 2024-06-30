@@ -1,5 +1,5 @@
-from django.shortcuts import render
 from rest_framework.generics import ListAPIView
+
 from .models import UserAccount
 from djoser.serializers import UserSerializer
 from rest_framework.response import Response
