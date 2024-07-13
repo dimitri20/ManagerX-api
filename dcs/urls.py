@@ -20,7 +20,8 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
-    path('api/eDocumentFlow/', include('eDocumentFlow.urls'))
+    path('api/eDocumentFlow/', include('eDocumentFlow.urls')),
+    path('api/', include('expertiseMainFlow.urls'))
 ]
 
 # urlpatterns += [re_path(r'^.*', TemplateView.as_view(template_name='index.html'))]
