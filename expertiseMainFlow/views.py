@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, GenericAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from rest_framework.response import Response
+from django.core.mail import send_mail
 
 from expertiseMainFlow.models import ExpertiseFolder
 from expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSerializer, ExpertiseFolderDetailsSerializer
@@ -46,3 +47,16 @@ class ExpertiseFolderDetailsView(RetrieveAPIView):
 class ListExpertiseFolderView(ListAPIView):
     serializer_class = ExpertiseFolderSerializer
     queryset = ExpertiseFolder.objects.all()
+
+
+class SendEmailTestView(GenericAPIView):
+
+    def get(self, request, *args, **kwargs):
+        subject = 'Test Email'
+        message = 'This is a test email sent using SMTP in Django.'
+        from_email = 'dito.gulua03@gmail.com'
+        recipient_list = ['dimitri.gulua@geolab.edu.ge']
+
+        send_mail(subject, message, from_email, recipient_list)
+
+        return Response("hehe")
