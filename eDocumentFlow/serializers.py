@@ -1,13 +1,14 @@
 from rest_framework import serializers
-from .models import Document, DocumentSignEvent, DocumentVerifyEvent, TaskRegisteringEvent, SendDocumentToSignEvent, SendDocumentToVerifyEvent
+from .models import Document, DocumentSignEvent, DocumentVerifyEvent, TaskRegisteringEvent, SendDocumentToSignEvent, \
+    SendDocumentToVerifyEvent
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Document
         fields = '__all__'
         read_only_fields = ('uuid', 'is_signed', 'is_verified', 'verified_by_users', 'creation_date', 'updated_ad')
+
 
 class DocumentSignEventSerializer(serializers.ModelSerializer):
     class Meta:
