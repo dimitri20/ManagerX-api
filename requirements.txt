@@ -13,6 +13,7 @@ dj-database-url==2.2.0
 Django==5.0.6
 django-cors-headers==4.3.1
 django-filter==24.2
+django-mailbox==4.10.1
 django-storages==1.14.3
 django-templated-mail==1.1.1
 djangorestfilemanager==2.0.3
@@ -30,7 +31,6 @@ jsonschema-specifications==2023.12.1
 oauthlib==3.2.2
 packaging==24.0
 pluggy==1.5.0
-psycopg2==2.9.9
 psycopg2-binary==2.9.9
 pycparser==2.22
 PyJWT==2.8.0
