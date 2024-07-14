@@ -9,11 +9,11 @@ from django_mailbox.models import Message, MessageAttachment, Mailbox
 from rest_framework.filters import OrderingFilter
 
 import dcs.settings
-from expertiseMainFlow.filters import EMailMessagesListFilter
-from expertiseMainFlow.models import ExpertiseFolder, File
-from expertiseMainFlow.paginations import EMailMessagesListPagination
+from expertiseMainFlow.filters import EMailMessagesListFilter, TaskListFilter
+from expertiseMainFlow.models import ExpertiseFolder, File, Task
+from expertiseMainFlow.paginations import EMailMessagesListPagination, TaskListPagination
 from expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSerializer, ExpertiseFolderDetailsSerializer, \
-    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer
+    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer, TaskSerializer
 
 import os
 import shutil
@@ -97,12 +97,15 @@ class ImportAttachmentsFromMail(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
             attachments = MessageAttachment.objects.filter(message_id=serializer.validated_data['email_id'])
             attachments = [{'path': attachment.document.path, 'name': attachment.get_filename()} for attachment in
                            attachments]
             expertise_folder = ExpertiseFolder.objects.get(pk=serializer.validated_data['copy_to_folder_id'])
-
+            print("attachments", attachments)
+            print("expertise_folder", expertise_folder)
+            # TODO - check if file exists in mail folder
             for attachment in attachments:
                 file = File.objects.filter(title=attachment['name'])
                 if not file.exists():
@@ -123,3 +126,20 @@ class ImportAttachmentsFromMail(GenericAPIView):
             return Response({'attachments': attachments}, status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaskCreateView(CreateAPIView):
+    serializer_class = TaskSerializer
+    queryset = Task.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.validated_data['creator'] = self.request.user
+        serializer.save()
+
+class TaskListView(ListAPIView):
+    serializer_class = TaskSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = TaskListFilter
+    pagination_class = TaskListPagination
+    ordering_fields = '__all__'
+    queryset = Task.objects.all()

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, ExpertiseFolder, Tag
+from .models import File, ExpertiseFolder, Tag, Task
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 
@@ -62,3 +62,10 @@ class EmailSerializer(serializers.ModelSerializer):
 class ImportAttachmentsFromMailSerializer(serializers.Serializer):
     email_id = serializers.IntegerField()
     copy_to_folder_id = serializers.CharField(max_length=255, allow_blank=False, allow_null=False)
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = '__all__'
+        read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
