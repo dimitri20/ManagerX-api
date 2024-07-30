@@ -10,10 +10,11 @@ from rest_framework.filters import OrderingFilter
 
 import dcs.settings
 from expertiseMainFlow.filters import EMailMessagesListFilter, TaskListFilter
-from expertiseMainFlow.models import ExpertiseFolder, File, Task
-from expertiseMainFlow.paginations import EMailMessagesListPagination, TaskListPagination
+from expertiseMainFlow.models import ExpertiseFolder, File, Task, CustomField, FolderData
+from expertiseMainFlow.paginations import StandardPagination
 from expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSerializer, ExpertiseFolderDetailsSerializer, \
-    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer, TaskSerializer
+    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer, TaskSerializer, \
+    CustomFieldSerializer, FolderDataCreateSerializer
 
 import os
 import shutil
@@ -85,7 +86,7 @@ class EMailMessagesListView(ListAPIView):
     serializer_class = EmailSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = EMailMessagesListFilter
-    pagination_class = EMailMessagesListPagination
+    pagination_class = StandardPagination
     ordering_fields = '__all__'
 
     def get_queryset(self):
@@ -136,10 +137,39 @@ class TaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
+
 class TaskListView(ListAPIView):
     serializer_class = TaskSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TaskListFilter
-    pagination_class = TaskListPagination
+    pagination_class = StandardPagination
     ordering_fields = '__all__'
     queryset = Task.objects.all()
+
+
+class CustomFieldViewSet(CreateAPIView):
+    serializer_class = CustomFieldSerializer
+    queryset = CustomField.objects.all()
+
+
+class CustomFieldListViewSet(ListAPIView):
+    serializer_class = CustomFieldSerializer
+    queryset = CustomField.objects.all()
+
+
+class FolderDataViewSet(GenericAPIView):
+    serializer_class = FolderDataCreateSerializer
+    queryset = FolderData.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            expertise_folder = serializer.validated_data['expertise_folder']
+            key_value_pairs = serializer.validated_data['key_value_pair']
+
+            instances = serializer.create_or_update_folder_data(expertise_folder, key_value_pairs)
+            response_data = [
+                {'id': instance.id, 'expertise_folder': instance.expertise_folder.uuid, 'field': instance.field.id} for
+                instance in instances]
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

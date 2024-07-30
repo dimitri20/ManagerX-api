@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, ExpertiseFolder, Tag, Task
+from .models import File, ExpertiseFolder, Tag, Task, CustomField, FolderData
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 
@@ -9,25 +9,6 @@ class FileSerializer(serializers.ModelSerializer):
         model = File
         fields = '__all__'
         read_only_fields = ('uuid', 'created_at', 'updated_at')
-
-
-class ExpertiseFolderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExpertiseFolder
-        fields = '__all__'
-        read_only_fields = ('uuid', 'created_at', 'updated_at')
-
-
-class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
-    files = FileSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = ExpertiseFolder
-        fields = '__all__'
-        read_only_fields = ('uuid', 'created_at', 'updated_at')
-
-    def get_files(self, obj):
-        return File.objects.get(folder=obj.uuid)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -69,3 +50,100 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = '__all__'
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
+
+
+class ReadWriteSerializerMethodField(serializers.SerializerMethodField):
+    """
+    Based on https://stackoverflow.com/a/62579804
+    """
+
+    def __init__(self, method_name=None, *args, **kwargs):
+        self.method_name = method_name
+        kwargs["source"] = "*"
+        super(serializers.SerializerMethodField, self).__init__(*args, **kwargs)
+
+    def to_internal_value(self, data):
+        return {self.field_name: data}
+
+
+class CustomFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomField
+        fields = ['id', 'name', 'label', 'data_type']
+
+
+class KeyValuePairSerializer(serializers.Serializer):
+    field = serializers.PrimaryKeyRelatedField(queryset=CustomField.objects.all())
+    value = ReadWriteSerializerMethodField(allow_null=True)
+
+
+class FolderDataCreateSerializer(serializers.Serializer):
+    expertise_folder = serializers.PrimaryKeyRelatedField(queryset=ExpertiseFolder.objects.all())
+    key_value_pair = KeyValuePairSerializer(many=True)
+
+    def create_or_update_folder_data(self, expertise_folder, key_value_pair):
+        type_to_data_store_name_map = {
+            CustomField.FieldDataType.STRING: "value_string",
+            CustomField.FieldDataType.URL: "value_url",
+            CustomField.FieldDataType.DATE: "value_date",
+            CustomField.FieldDataType.BOOL: "value_bool",
+            CustomField.FieldDataType.INT: "value_int",
+            CustomField.FieldDataType.FLOAT: "value_float",
+        }
+
+        instances = []
+        for pair in key_value_pair:
+            custom_field = pair.get('field')
+            value = pair.get('value')
+            data_store_name = type_to_data_store_name_map[custom_field.data_type]
+
+            instance, _ = FolderData.objects.update_or_create(
+                expertise_folder=expertise_folder,
+                field=custom_field,
+                defaults={data_store_name: value},
+            )
+            instances.append(instance)
+        return instances
+
+    def get_value(self, obj: FolderData):
+        return obj.value
+
+
+class FolderDataSerializer(serializers.ModelSerializer):
+    value = ReadWriteSerializerMethodField(allow_null=True)
+    field = CustomFieldSerializer(read_only=True)
+
+    class Meta:
+        model = FolderData
+        fields = ['field', 'value']
+
+    def get_value(self, obj: FolderData):
+        return obj.value
+
+
+class ExpertiseFolderSerializer(serializers.ModelSerializer):
+    custom_fields = FolderDataSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ExpertiseFolder
+        fields = '__all__'
+        read_only_fields = ('uuid', 'created_at', 'updated_at')
+
+    def get_custom_fields(self, obj):
+        return FolderData.objects.get(expertise_folder=obj.uuid)
+
+
+class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
+    files = FileSerializer(many=True, read_only=True)
+    custom_fields = FolderDataSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ExpertiseFolder
+        fields = '__all__'
+        read_only_fields = ('uuid', 'created_at', 'updated_at')
+
+    def get_files(self, obj):
+        return File.objects.get(folder=obj.uuid)
+
+    def get_custom_fields(self, obj):
+        return FolderData.objects.get(expertise_folder=obj.uuid)
