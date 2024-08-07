@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class EdocumentflowConfig(AppConfig):
+class TasksConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'eDocumentFlow'
+    name = 'tasks'

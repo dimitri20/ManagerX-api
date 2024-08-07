@@ -64,3 +64,5 @@ uritemplate==4.1.1
 urllib3==2.2.1
 uvicorn==0.30.1
 whitenoise==6.7.0
+
+celery~=5.4.0
