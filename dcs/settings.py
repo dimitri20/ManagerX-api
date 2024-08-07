@@ -46,8 +46,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'django_mailbox',
+    'tasks',
     'accounts',
-    'eDocumentFlow',
     'expertiseMainFlow',
     'rest_framework_swagger',
     'drf_yasg'

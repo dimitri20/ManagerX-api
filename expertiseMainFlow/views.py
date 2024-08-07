@@ -8,12 +8,11 @@ from django.core.mail import send_mail
 from django_mailbox.models import Message, MessageAttachment, Mailbox
 from rest_framework.filters import OrderingFilter
 
-import dcs.settings
-from expertiseMainFlow.filters import EMailMessagesListFilter, TaskListFilter
-from expertiseMainFlow.models import ExpertiseFolder, File, Task, CustomField, FolderData
+from expertiseMainFlow.filters import EMailMessagesListFilter
+from expertiseMainFlow.models import ExpertiseFolder, File, CustomField, FolderData
 from expertiseMainFlow.paginations import StandardPagination
 from expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSerializer, ExpertiseFolderDetailsSerializer, \
-    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer, TaskSerializer, \
+    EmailSerializer, ImportAttachmentsFromMailSerializer, EmailMessageAttachmentSerializer, \
     CustomFieldSerializer, FolderDataCreateSerializer
 
 import os
@@ -129,24 +128,6 @@ class ImportAttachmentsFromMail(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class TaskCreateView(CreateAPIView):
-    serializer_class = TaskSerializer
-    queryset = Task.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.validated_data['creator'] = self.request.user
-        serializer.save()
-
-
-class TaskListView(ListAPIView):
-    serializer_class = TaskSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = TaskListFilter
-    pagination_class = StandardPagination
-    ordering_fields = '__all__'
-    queryset = Task.objects.all()
-
-
 class CustomFieldViewSet(CreateAPIView):
     serializer_class = CustomFieldSerializer
     queryset = CustomField.objects.all()
@@ -173,3 +154,5 @@ class FolderDataViewSet(GenericAPIView):
                 instance in instances]
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 class UserListView(ListAPIView):
     serializer_class = UserAccount
+    swagger_fake_view = False
 
     def get(self, request, *args, **kwargs):
         users = UserAccount.objects.all()
