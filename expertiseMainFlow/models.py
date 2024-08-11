@@ -30,6 +30,7 @@ class ExpertiseFolder(models.Model):
     status = models.CharField(max_length=255, choices=Status.choices, null=False, blank=False)
     path = models.CharField(max_length=255, null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name="folder_tags", blank=True)
+    # TODO - change comment as jsonfield
     comment = models.TextField(max_length=5000, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

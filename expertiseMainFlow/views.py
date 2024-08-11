@@ -17,6 +17,7 @@ from expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSeriali
 
 import os
 import shutil
+import uuid
 
 
 class UploadFileView(CreateAPIView):
@@ -44,7 +45,7 @@ class CreateExpertiseFolderView(CreateAPIView):
         customer = serializer.validated_data['customer']
         case = serializer.validated_data['case']
         serializer.validated_data['title'] = f"{customer}, {case}"
-        serializer.validated_data['path'] = f"media/uploads/{customer}/{case}/"
+        serializer.validated_data['path'] = f"media/uploads/{uuid.uuid4}/"
         serializer.save()
 
 
