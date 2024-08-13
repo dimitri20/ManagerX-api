@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ManagerX
+      POSTGRES_USER: ManagerX
+      POSTGRES_PASSWORD: ManagerX
+    ports:
+      - "5433:5432"
+
+  api:
+    container_name: ManagerX-api
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app/
+      - ./media:/usr/src/app/media/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file: ".env"
+    environment:
+      DJANGO_SETTINGS_MODULE: ManagerX-api.settings
+
+volumes:
+  postgres_data:
