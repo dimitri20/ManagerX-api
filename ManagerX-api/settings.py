@@ -21,25 +21,24 @@ CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bo
 
 # Application definition
 INSTALLED_APPS = [
-                     'django.contrib.admin',
-                     'django.contrib.auth',
-                     'django.contrib.contenttypes',
-                     'django.contrib.sessions',
-                     'django.contrib.messages',
-                     'django.contrib.staticfiles',
-                 ] + [
-                     'rest_framework',
-                     'djoser',
-                     'corsheaders',
-                     'django_filters',
-                     'django_mailbox',
-                     'rest_framework_swagger',
-                     'drf_yasg',
-                 ] + [
-                     'apps.tasks',
-                     'apps.accounts',
-                     'apps.expertiseMainFlow',
-                 ]
+     'daphne',
+     'django.contrib.admin',
+     'django.contrib.auth',
+     'django.contrib.contenttypes',
+     'django.contrib.sessions',
+     'django.contrib.messages',
+     'django.contrib.staticfiles',
+     'rest_framework',
+     'djoser',
+     'corsheaders',
+     'django_filters',
+     'django_mailbox',
+     'rest_framework_swagger',
+     'drf_yasg',
+     'apps.tasks',
+     'apps.accounts',
+     'apps.expertiseMainFlow',
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -71,7 +70,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'ManagerX-api.wsgi.application'
+# WSGI_APPLICATION = 'ManagerX-api.wsgi.application'
+ASGI_APPLICATION = "ManagerX-api.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
