@@ -30,8 +30,8 @@ class ExpertiseFolder(models.Model):
     status = models.CharField(max_length=255, choices=Status.choices, null=False, blank=False)
     path = models.CharField(max_length=255, null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name="folder_tags", blank=True)
-    # TODO - change comment as jsonfield
-    comment = models.TextField(max_length=5000, null=True, blank=True)
+    comment = models.CharField(max_length=10000, null=True, blank=True)
+    owner = models.ForeignKey(User, related_name="expertise_folders", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +42,7 @@ class File(models.Model):
     file = models.FileField(upload_to=get_upload_to, null=True, blank=True)
     folder = models.ForeignKey(ExpertiseFolder, related_name='files', on_delete=models.CASCADE, null=True)
     tags = models.ManyToManyField(Tag, related_name="file_tags", blank=True)
+    owner = models.ForeignKey(User, related_name="expertise_files", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

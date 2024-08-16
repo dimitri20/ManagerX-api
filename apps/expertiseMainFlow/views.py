@@ -24,6 +24,7 @@ class UploadFileView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            serializer.validated_data['owner'] = self.request.user
             serializer.validated_data['title'] = serializer.validated_data['file'].name
             serializer.save()
             return Response(
@@ -39,10 +40,13 @@ class CreateExpertiseFolderView(CreateAPIView):
     queryset = ExpertiseFolder.objects.all()
 
     def perform_create(self, serializer):
+        serializer.validated_data['owner'] = self.request.user
         customer = serializer.validated_data['customer']
         case = serializer.validated_data['case']
+        uuid4 = uuid.uuid4()
+        serializer.validated_data['uuid'] = uuid4
         serializer.validated_data['title'] = f"{customer}, {case}"
-        serializer.validated_data['path'] = f"media/uploads/{uuid.uuid4}/"
+        serializer.validated_data['path'] = f"{self.request.user.id}/uploads/{uuid4}/"
         serializer.save()
 
 

@@ -26,5 +26,31 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: ManagerX-api.settings
 
+  # Redis - result backend
+  redis:
+    image: redis:latest
+    hostname: redis
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # here, we can access rabbitmq management plugin
+
+  celery:
+    container_name: worker
+    build:
+      context: .
+    command: celery -A ManagerX-api worker -l INFO
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+    depends_on:
+      - redis
+      - rabbit
+      - api
+
 volumes:
   postgres_data:

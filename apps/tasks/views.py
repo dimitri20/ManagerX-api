@@ -7,6 +7,7 @@ from apps.tasks.serializers import TaskSerializer, TaskDetailViewSerializer, Sub
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
+from .tasks import send_notification_to_assignee
 
 
 class TaskCreateView(CreateAPIView):
@@ -16,6 +17,9 @@ class TaskCreateView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
+
+        # execute tasks
+        send_notification_to_assignee.delay(serializer.data)
 
 
 class TaskDetailView(RetrieveAPIView):
