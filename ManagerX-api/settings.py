@@ -4,6 +4,7 @@ from decouple import config
 import os
 
 import dj_database_url
+from kombu import Queue, Exchange
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -18,29 +19,27 @@ CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bo
 
 CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bool)
 
-
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-] + [
-    'rest_framework',
-    'djoser',
-    'corsheaders',
-    'django_filters',
-    'django_mailbox',
-    'rest_framework_swagger',
-    'drf_yasg'
-] + [
-    'apps.tasks',
-    'apps.accounts',
-    'apps.expertiseMainFlow',
-]
-
+                     'django.contrib.admin',
+                     'django.contrib.auth',
+                     'django.contrib.contenttypes',
+                     'django.contrib.sessions',
+                     'django.contrib.messages',
+                     'django.contrib.staticfiles',
+                 ] + [
+                     'rest_framework',
+                     'djoser',
+                     'corsheaders',
+                     'django_filters',
+                     'django_mailbox',
+                     'rest_framework_swagger',
+                     'drf_yasg',
+                 ] + [
+                     'apps.tasks',
+                     'apps.accounts',
+                     'apps.expertiseMainFlow',
+                 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -113,6 +112,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+    "django.core.files.uploadhandler.TemporaryFileUploadHandler",
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -181,4 +185,12 @@ SWAGGER_SETTINGS = {
 AUTH_USER_MODEL = 'accounts.UserAccount'
 
 MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
+MEDIA_URL = 'media/'
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "Asia/Tbilisi"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
+
