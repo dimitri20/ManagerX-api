@@ -1,3 +1,5 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
@@ -8,6 +10,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
 from .tasks import send_notification_to_assignee
+from apps.notifications.tasks import send_notification
+from ..notifications.models import Notification
 
 
 class TaskCreateView(CreateAPIView):
@@ -19,7 +23,10 @@ class TaskCreateView(CreateAPIView):
         serializer.save()
 
         # execute tasks
-        send_notification_to_assignee.delay(serializer.data)
+        notification = Notification(message=f"task created: {serializer.data['uuid']}")
+        notification.save()
+
+        send_notification.delay(notification.id)
 
 
 class TaskDetailView(RetrieveAPIView):

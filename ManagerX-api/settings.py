@@ -38,6 +38,7 @@ INSTALLED_APPS = [
      'apps.tasks',
      'apps.accounts',
      'apps.expertiseMainFlow',
+     'apps.notifications'
 ]
 
 MIDDLEWARE = [
@@ -72,6 +73,15 @@ TEMPLATES = [
 
 # WSGI_APPLICATION = 'ManagerX-api.wsgi.application'
 ASGI_APPLICATION = "ManagerX-api.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -193,4 +203,25 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'ManagerX-api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
 

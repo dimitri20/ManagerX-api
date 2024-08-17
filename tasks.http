@@ -1,0 +1,20 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=PyCharm
+
+### create Task
+
+POST localhost:8000/api/tasks/create/
+Content-Type: application/json
+Authorization: JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzIzOTA0OTMyLCJpYXQiOjE3MjM5MDEzMzIsImp0aSI6ImY1MDMxNDg1YWQ3NDRjZDNhNzQzZTgwZGJlMTMxZjEzIiwidXNlcl9pZCI6IjVhOWVmYjg4LTg4ODAtNDJiNS1hYmU4LWJjZmRiYTczZGUxOSJ9.tCbe4R7e2DEDjeJGoBC5TgjdBIEOJeMl6QRzga3cfAs
+
+{
+  "title": "test title 1",
+  "status": "TODO",
+  "comment": "aoidjaosidj aoisdjosaij ioasdjoi ajoiasdj oiajdoijasod ijaoidjasoidjaoidjaoisdjaoisdjaoidjaoisdjaoisdj asjd aoi j aosidjaoi jasjai jasdio asdu aisud ha das daksd ahd aiuh uihe fiuh uih siuhfiuh dua w",
+  "deadline": "2024-08-17",
+  "assign_to": "531abc46-d4a1-4fe4-8d6a-531c32e114ba"
+}
+
+###
+
