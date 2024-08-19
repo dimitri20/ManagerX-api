@@ -25,10 +25,13 @@ cryptography==42.0.7
 daphne==4.1.2
 defusedxml==0.8.0rc2
 dj-database-url==2.2.0
+dj-rest-auth==6.0.0
 Django==5.1
+django-allauth==64.1.0
 django-cors-headers==4.3.1
 django-filter==24.2
 django-mailbox==4.10.1
+django-rest-knox==5.0.1
 django-rest-swagger==2.2.0
 django-storages==1.14.3
 django-templated-mail==1.1.1
@@ -94,7 +97,7 @@ simplejson==3.19.2
 six==1.16.0
 social-auth-app-django==5.4.1
 social-auth-core==4.5.4
-sqlparse==0.5.1
+sqlparse==0.5.0
 Twisted==24.7.0
 txaio==23.1.1
 typing_extensions==4.12.1
