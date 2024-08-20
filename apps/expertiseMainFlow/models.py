@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.core.exceptions import ValidationError
 import uuid
+import os
+import shutil
 
 from apps.expertiseMainFlow.utils import get_upload_to
 
@@ -35,6 +39,23 @@ class ExpertiseFolder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def delete(self, *args, **kwargs):
+        if self.path:
+            # Construct the full path
+            full_path = os.path.join(settings.MEDIA_ROOT, self.path)
+
+            # Check if the full path points to a valid directory
+            if os.path.isdir(full_path):
+                try:
+                    # Recursively delete the directory and all its contents
+                    shutil.rmtree(full_path)
+                except Exception as e:
+                    # Handle exceptions (e.g., log them if necessary)
+                    raise ValidationError(f"Error deleting directory {full_path}: {e}")
+
+            # Call the superclass delete method to delete the model instance
+        super().delete(*args, **kwargs)
+
 
 class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
@@ -45,6 +66,27 @@ class File(models.Model):
     owner = models.ForeignKey(User, related_name="expertise_files", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    def delete(self, *args, **kwargs):
+        if self.file:
+            # Construct the full path to the file
+            full_file_path = os.path.join(settings.MEDIA_ROOT, self.file.name)
+
+            # Check if the file exists
+            if os.path.isfile(full_file_path):
+                try:
+                    # Delete the file from the filesystem
+                    os.remove(full_file_path)
+                except Exception as e:
+                    # Raise an error if the file cannot be deleted
+                    raise ValidationError(f"Error deleting file {full_file_path}: {e}")
+
+        # Call the superclass delete method to delete the model instance
+        super().delete(*args, **kwargs)
+
 
 
 class CustomField(models.Model):

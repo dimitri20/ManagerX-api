@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.core.mail import send_mail
 from django_mailbox.models import Message, MessageAttachment, Mailbox
 from rest_framework.filters import OrderingFilter
+from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.expertiseMainFlow.filters import EMailMessagesListFilter
 from apps.expertiseMainFlow.models import ExpertiseFolder, File, CustomField, FolderData
@@ -17,48 +18,6 @@ import shutil
 import uuid
 
 
-class UploadFileView(CreateAPIView):
-    serializer_class = FileSerializer
-    parser_classes = (MultiPartParser, FormParser)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.validated_data['owner'] = self.request.user
-            serializer.validated_data['title'] = serializer.validated_data['file'].name
-            serializer.save()
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CreateExpertiseFolderView(CreateAPIView):
-    serializer_class = ExpertiseFolderSerializer
-    queryset = ExpertiseFolder.objects.all()
-
-    def perform_create(self, serializer):
-        serializer.validated_data['owner'] = self.request.user
-        customer = serializer.validated_data['customer']
-        case = serializer.validated_data['case']
-        uuid4 = uuid.uuid4()
-        serializer.validated_data['uuid'] = uuid4
-        serializer.validated_data['title'] = f"{customer}, {case}"
-        serializer.validated_data['path'] = f"{self.request.user.id}/uploads/{uuid4}/"
-        serializer.save()
-
-
-class ExpertiseFolderDetailsView(RetrieveAPIView):
-    serializer_class = ExpertiseFolderDetailsSerializer
-    queryset = ExpertiseFolder.objects.all()
-    lookup_field = "uuid"
-
-
-class ListExpertiseFolderView(ListAPIView):
-    serializer_class = ExpertiseFolderSerializer
-    queryset = ExpertiseFolder.objects.all()
 
 
 class SendEmailTestView(GenericAPIView):
@@ -130,31 +89,5 @@ class ImportAttachmentsFromMail(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CustomFieldViewSet(CreateAPIView):
-    serializer_class = CustomFieldSerializer
-    queryset = CustomField.objects.all()
-
-
-class CustomFieldListViewSet(ListAPIView):
-    serializer_class = CustomFieldSerializer
-    queryset = CustomField.objects.all()
-
-
-class FolderDataViewSet(GenericAPIView):
-    serializer_class = FolderDataCreateSerializer
-    queryset = FolderData.objects.all()
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            expertise_folder = serializer.validated_data['expertise_folder']
-            key_value_pairs = serializer.validated_data['key_value_pair']
-
-            instances = serializer.create_or_update_folder_data(expertise_folder, key_value_pairs)
-            response_data = [
-                {'id': instance.id, 'expertise_folder': instance.expertise_folder.uuid, 'field': instance.field.id} for
-                instance in instances]
-            return Response(response_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
