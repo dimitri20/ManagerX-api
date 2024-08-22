@@ -1,5 +1,6 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.contrib.auth import get_user_model
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
@@ -9,10 +10,10 @@ from apps.tasks.serializers import TaskSerializer, TaskDetailViewSerializer, Sub
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
-from .tasks import send_notification_to_assignee
 from apps.notifications.tasks import send_notification
 from ..notifications.models import Notification
 
+User = get_user_model()
 
 class TaskCreateView(CreateAPIView):
     serializer_class = TaskSerializer
@@ -23,10 +24,15 @@ class TaskCreateView(CreateAPIView):
         serializer.save()
 
         # execute tasks
-        notification = Notification(message=f"task created: {serializer.data['uuid']}")
+        notification = Notification(
+            initiator=self.request.user,
+            receiver=serializer.validated_data['creator'],
+            title="Created task",
+            message=f"User {self.request.user.username} created for you"
+        )
         notification.save()
 
-        send_notification.delay(notification.id)
+        send_notification.delay(notification.uuid)
 
 
 class TaskDetailView(RetrieveAPIView):

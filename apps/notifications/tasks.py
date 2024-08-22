@@ -7,7 +7,6 @@ from .models import Notification
 
 logger = logging.getLogger(__name__)
 
-
 @shared_task
 def send_notification(notification_id):
     notification = Notification.objects.get(pk=notification_id)
@@ -15,10 +14,14 @@ def send_notification(notification_id):
     logger.info("send_notification task is running.")
 
     channel_layer = get_channel_layer()
+    group_name = f'notifications_{notification.receiver.id}'
+    print(f"group name notification_tasks.py is {group_name}")
     async_to_sync(channel_layer.group_send)(
-        'public_room',
+        group_name,
         {
             "type": "send_notification",
-            "message": notification.message
+            "title": notification.title,
+            "message": notification.message,
+            "level": notification.level,
         }
     )

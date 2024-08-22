@@ -23,9 +23,16 @@ class CreateExpertiseFolderView(CreateAPIView):
         serializer.validated_data['owner'] = self.request.user
         customer = serializer.validated_data['customer']
         case = serializer.validated_data['case']
+        title = serializer.validated_data['title']
+
+        if not title:
+            if customer and case:
+                serializer.validated_data['title'] = f"{customer}, {case}"
+            else:
+                raise ValueError('Enter customer and case, or document title.')
+
         uuid4 = uuid.uuid4()
         serializer.validated_data['uuid'] = uuid4
-        serializer.validated_data['title'] = f"{customer}, {case}"
         serializer.validated_data['path'] = f"{self.request.user.id}/uploads/{uuid4}/"
         serializer.save()
 
