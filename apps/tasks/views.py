@@ -1,12 +1,10 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
 from apps.tasks.models import Task, SubTask
 from apps.tasks.paginations import StandardPagination
-from apps.tasks.serializers import TaskSerializer, TaskDetailViewSerializer, SubtaskSerializer, TaskListSerializer
+from apps.tasks.serializers import TaskSerializer, SubtaskSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
@@ -23,20 +21,22 @@ class TaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
-        # execute tasks
-        notification = Notification(
-            initiator=self.request.user,
-            receiver=serializer.validated_data['creator'],
-            title="Created task",
-            message=f"User {self.request.user.username} created for you"
-        )
-        notification.save()
+        if serializer.validated_data['assign_to']:
+            # execute tasks
+            notification = Notification(
+                initiator=self.request.user,
+                receiver=serializer.validated_data['assign_to'],
+                title="Created task",
+                message=f"User {self.request.user.username} created for you",
+                level=Notification.Level.INFO
+            )
+            notification.save()
 
-        send_notification.delay(notification.uuid)
+            send_notification.delay(notification.uuid)
 
 
 class TaskDetailView(RetrieveAPIView):
-    serializer_class = TaskDetailViewSerializer
+    serializer_class = TaskSerializer
     queryset = Task.objects.all()
     lookup_field = 'uuid'
 
@@ -54,7 +54,7 @@ class TaskDeleteView(DestroyAPIView):
 
 
 class TaskListView(ListAPIView):
-    serializer_class = TaskListSerializer
+    serializer_class = TaskSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TaskListFilter
     pagination_class = StandardPagination

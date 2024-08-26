@@ -1,4 +1,3 @@
-from allauth.headless.base.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -16,6 +15,8 @@ from apps.expertiseMainFlow.models import File
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers import FileSerializer
 
+from apps.expertiseMainFlow.tasks import upload_file_to_google_drive_task
+
 
 class UploadFileView(CreateAPIView):
     serializer_class = FileSerializer
@@ -27,6 +28,7 @@ class UploadFileView(CreateAPIView):
             serializer.validated_data['owner'] = self.request.user
             serializer.validated_data['title'] = serializer.validated_data['file'].name
             serializer.save()
+
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED

@@ -6,6 +6,7 @@ import uuid
 import os
 import shutil
 
+from apps.expertiseMainFlow.backup.drive import get_folder_id_by_name
 from apps.expertiseMainFlow.utils import get_upload_to
 
 User = get_user_model()
@@ -16,7 +17,6 @@ class Tag(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
 
 class ExpertiseFolder(models.Model):
     class Status(models.TextChoices):
@@ -56,6 +56,14 @@ class ExpertiseFolder(models.Model):
             # Call the superclass delete method to delete the model instance
         super().delete(*args, **kwargs)
 
+    def get_drive_folder_id(self):
+        folder_id = None
+        try:
+            folder_id = get_folder_id_by_name(self.uuid)
+        except Exception as e:
+            print("file not found on google's drive")
+
+        return folder_id
 
 class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
@@ -87,8 +95,6 @@ class File(models.Model):
         # Call the superclass delete method to delete the model instance
         super().delete(*args, **kwargs)
 
-
-
 class CustomField(models.Model):
     class FieldDataType(models.TextChoices):
         STRING = "string"
@@ -101,7 +107,6 @@ class CustomField(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     label = models.CharField(max_length=255, null=False, blank=False, default=name.__str__())
     data_type = models.CharField(max_length=255, choices=FieldDataType.choices, null=False, blank=False)
-
 
 class FolderData(models.Model):
     field = models.ForeignKey(
@@ -150,3 +155,11 @@ class FolderData(models.Model):
                 return self.value_float
             case _:
                 raise NotImplementedError(self.field.data_type)
+
+# rename to shared root folder
+class SharedFolderData(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    user = models.ForeignKey(User, related_name="shared_folders", on_delete=models.CASCADE, null=False, blank=False)
+    drive_folder_name = models.CharField(max_length=255, null=False, blank=False)
+    drive_folder_id = models.CharField(max_length=255, null=False, blank=False)
+    additional_data = models.JSONField(null=True, blank=True)

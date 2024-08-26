@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, ExpertiseFolder, Tag, CustomField, FolderData
+from .models import File, ExpertiseFolder, Tag, CustomField, FolderData, SharedFolderData
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 
@@ -126,6 +126,17 @@ class ExpertiseFolderSerializer(serializers.ModelSerializer):
     def get_custom_fields(self, obj):
         return FolderData.objects.get(expertise_folder=obj.uuid)
 
+    def validate_title(self, value):
+        # Get the user from the context (provided in the view)
+        user = self.context['request'].user
+
+        # Check if the title already exists for this user
+        if ExpertiseFolder.objects.filter(owner=user, title=value).exists():
+            raise serializers.ValidationError('This title already exists for this user.')
+
+        return value
+
+
 
 class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
     files = FileSerializer(many=True, read_only=True)
@@ -141,3 +152,15 @@ class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
 
     def get_custom_fields(self, obj):
         return FolderData.objects.get(expertise_folder=obj.uuid)
+
+
+class ExpertiseFolderSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpertiseFolder
+        fields = ['uuid', 'title']
+
+
+class SharedFolderDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SharedFolderData
+        fields = '__all__'
