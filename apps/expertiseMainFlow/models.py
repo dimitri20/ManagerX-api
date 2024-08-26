@@ -6,7 +6,7 @@ import uuid
 import os
 import shutil
 
-from apps.expertiseMainFlow.backup.drive import get_folder_id_by_name
+from apps.expertiseMainFlow.backup.drive import get_folder_by_name
 from apps.expertiseMainFlow.utils import get_upload_to
 
 User = get_user_model()
@@ -57,13 +57,9 @@ class ExpertiseFolder(models.Model):
         super().delete(*args, **kwargs)
 
     def get_drive_folder_id(self):
-        folder_id = None
-        try:
-            folder_id = get_folder_id_by_name(self.uuid)
-        except Exception as e:
-            print("file not found on google's drive")
+        folder = get_folder_by_name(self.uuid)
+        return folder['id'] if folder else None
 
-        return folder_id
 
 class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
