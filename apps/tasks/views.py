@@ -22,18 +22,14 @@ class TaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
-        if serializer.validated_data['assign_to']:
-            # execute tasks
-            notification = Notification(
+        if 'assign_to' in serializer.validated_data:
+            serializer.validated_data['assigned_to'].notify(
                 initiator=self.request.user,
                 receiver=serializer.validated_data['assign_to'],
                 title="Created task",
                 message=f"User {self.request.user.username} created for you",
                 level=Notification.Level.INFO
             )
-            notification.save()
-
-            send_notification.delay(notification.uuid)
 
 
 class TaskDetailView(RetrieveAPIView):
