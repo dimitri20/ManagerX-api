@@ -82,6 +82,21 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    def notify(self, title, message, initiator=None, level="info"):
+        from apps.notifications.models import Notification
+        from apps.notifications.tasks import send_notification
+
+        notification = Notification(
+            initiator=initiator,
+            receiver=self,
+            title=title,
+            message=message,
+            level=level
+        )
+        notification.save()
+
+        send_notification.delay(notification.uuid)
+
 
 class UserAccount(AbstractUser):
     """
@@ -93,3 +108,11 @@ class UserAccount(AbstractUser):
 
     class Meta(AbstractUser.Meta):
         swappable = "AUTH_USER_MODEL"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+
+    def __str__(self):
+        return self.user.username

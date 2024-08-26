@@ -20,6 +20,7 @@ class CreateExpertiseFolderView(CreateAPIView):
     queryset = ExpertiseFolder.objects.all()
 
     def perform_create(self, serializer):
+        serializer.is_valid(raise_exception=True)
         serializer.validated_data['owner'] = self.request.user
         customer = serializer.validated_data['customer']
         case = serializer.validated_data['case']

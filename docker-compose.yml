@@ -18,6 +18,7 @@ services:
     volumes:
       - .:/usr/src/app/
       - ./media:/usr/src/app/media/
+      - ~/Documents/credentials/:/usr/src/credentials/
     ports:
       - "8000:8000"
     depends_on:
@@ -47,6 +48,8 @@ services:
     command: celery -A ManagerX-api worker -l INFO
     volumes:
       - .:/usr/src/app/
+      - ~/Documents/credentials/:/usr/src/credentials/
+    env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
     depends_on:
