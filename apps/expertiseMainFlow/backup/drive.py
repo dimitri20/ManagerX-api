@@ -77,12 +77,6 @@ def list_folder(parent_folder_id=None, delete=False):
             if delete:
                 delete_files(item['id'])
 
-def get_folder_id_by_name(folder_name):
-    """Check if a folder exists by name and return its ID."""
-    query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'"
-    results = drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
-    files = results.get('files', [])
-    return files[0]['id'] if files else None
 
 def get_file_by_id(file_id):
     """Retrieve a single file from Google Drive by its ID."""
@@ -100,14 +94,48 @@ def get_file_by_id(file_id):
 def get_folder_by_id(folder_id):
     """Retrieve a single folder from Google Drive by its ID."""
     # Get the folder metadata
-    folder = drive_service.files().get(fileId=folder_id, fields="id, name, mimeType, webViewLink").execute()
+    try:
 
-    # Check if the retrieved item is a folder
-    if folder['mimeType'] != 'application/vnd.google-apps.folder':
-        print(f"The item with ID {folder_id} is not a folder.")
+        folder = drive_service.files().get(fileId=folder_id, fields="id, name, mimeType, webViewLink").execute()
+
+        # Check if the retrieved item is a folder
+        if folder['mimeType'] != 'application/vnd.google-apps.folder':
+            print(f"The item with ID {folder_id} is not a folder.")
+            return None
+
+        return folder
+    except Exception as e:
+        print("Folder doesn't exist.")
         return None
 
-    return folder
+
+#TODO -
+def get_folder_by_name(folder_name, parent_folder_id=None):
+    try:
+        """Check if a folder exists by name and return its ID."""
+        # Start the query with the folder name and mimeType
+        query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'"
+
+        # If a parent folder ID is specified, add it to the query
+        if parent_folder_id:
+            query += f" and '{parent_folder_id}' in parents"
+
+        # Execute the query and get the results
+        results = drive_service.files().list(
+            q=query,
+            spaces='drive',
+            fields='files(id, name)'
+        ).execute()
+
+        # Retrieve the files list from the results
+        files = results.get('files', [])
+
+        # Return the first file if found, otherwise None
+        return files[0] if files else None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
 
 def delete_files(file_or_folder_id):
     """Delete a file or folder in Google Drive by ID."""
@@ -169,7 +197,7 @@ def check_if_folder_exists_on_drive(folder_id=None, folder_name=None):
     if folder_id:
         return get_folder_by_id(folder_id)
     elif folder_name:
-        return get_folder_by_id(get_folder_id_by_name(folder_name))
+        return get_folder_by_id(get_folder_by_name(folder_name))
 
     return False
 

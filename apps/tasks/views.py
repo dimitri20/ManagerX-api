@@ -23,7 +23,7 @@ class TaskCreateView(CreateAPIView):
         serializer.save()
 
         if 'assign_to' in serializer.validated_data:
-            serializer.validated_data['assigned_to'].notify(
+            serializer.validated_data['assign_to'].notify(
                 initiator=self.request.user,
                 receiver=serializer.validated_data['assign_to'],
                 title="Created task",
