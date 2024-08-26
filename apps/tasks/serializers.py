@@ -14,7 +14,6 @@ class SubtaskCreateSerializer(serializers.ModelSerializer):
         model = SubTask
         fields = '__all__'
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
-        depth = 1
 
 
 class SubtaskListSerializer(serializers.ModelSerializer):
@@ -38,7 +37,6 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         model = Task
         fields = '__all__'
         read_only_fields = ('uuid', 'creator', 'sent_to_customer', 'created_at', 'updated_at')
-        depth = 1
 
     def validate_deadline_to(self, value):
         if value and value < timezone.now().date():
