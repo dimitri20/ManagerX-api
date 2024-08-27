@@ -175,7 +175,7 @@ def create_shared_folder_for_user(user: User):
             'drive_folder_name': folder_name,
             'drive_folder_id': folder_id
         }
-        print(f'Successfully created and shared folder for {user_email}')
+        print(f'Successfully created and shared folder for {user_email}', shared_folder_info)
         return shared_folder_info
 
     return None
@@ -201,26 +201,24 @@ def check_if_folder_exists_on_drive(folder_id=None, folder_name=None):
 
     return False
 
-def upload_file(title, path, folder_id):
+def upload_file(title, path, folder_id=None):
     """
     Upload a file to Google Drive.
 
     Args:
         title (str): File title,
         path (str): File path,
-        folder_id (str): The ID of the Google Drive folder to upload the file to. If None, the file will be uploaded to the root.
+        folder_id (str, optional): The ID of the Google Drive folder to upload the file to.
+                                   If None, the file will be uploaded to the root.
 
     Returns:
         str: The ID of the uploaded file in Google Drive.
     """
     try:
-        # Get the name of the file from the file path
-        file_name = title
-
         # Define the file metadata
         file_metadata = {
-            'name': file_name,
-            'parents': folder_id
+            'name': title,
+            'parents': [folder_id] if folder_id else []  # Ensure parents is a list
         }
 
         # Create a media upload object using the file path
@@ -230,15 +228,37 @@ def upload_file(title, path, folder_id):
         uploaded_file = drive_service.files().create(
             body=file_metadata,
             media_body=media,
-            fields='id'
+            fields='id, webViewLink'
         ).execute()
 
-        print(f"File '{file_name}' uploaded successfully with ID: {uploaded_file['id']}")
-        return uploaded_file['id']
+        print(f"File '{title}' uploaded successfully with ID: {uploaded_file['id']}")
+        return uploaded_file
 
     except Exception as e:
         print(f'An error occurred while uploading the file: {e}')
         return None
+
+def delete_all_files_from_drive():
+    """Deletes all files from Google Drive using the service account."""
+
+    # Query to retrieve all files
+    query = "trashed=false"
+
+    # List all files in the Drive
+    results = drive_service.files().list(q=query, fields="files(id)").execute()
+    files = results.get('files', [])
+
+    if not files:
+        print("No files found.")
+        return
+
+    # Iterate over all files and delete them
+    for file in files:
+        try:
+            drive_service.files().delete(fileId=file['id']).execute()
+            print(f"Deleted file with ID: {file['id']}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 if __name__ == '__main__':
     list_folder()

@@ -1,7 +1,8 @@
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from setuptools.command.upload import upload
 
-from apps.expertiseMainFlow.models import File, ExpertiseFolder
+from apps.expertiseMainFlow.models import File, ExpertiseFolder, SyncedFolder, SyncedFile
 from apps.notifications.models import Notification
 from apps.expertiseMainFlow.backup.gcs import upload_file_to_gcs, upload_file_to_drive
 from apps.notifications.tasks import send_notification
@@ -12,19 +13,54 @@ User = get_user_model()
 
 @shared_task
 def create_folder_on_drive_task(folder_id):
-    folder = ExpertiseFolder.objects.get(pk=folder_id)
-    parent_folder_id = get_folder_by_name(folder.owner.username)
-    created_folder_id = create_folder(folder.title, parent_folder_id=parent_folder_id)
-    print(f"created folder {created_folder_id}")
+    try:
+        folder = ExpertiseFolder.objects.get(pk=folder_id)
+        parent_folder_id = folder.owner.get_user_root_folder_id()
+        created_folder_id = create_folder(folder.title, parent_folder_id=parent_folder_id)
+        if created_folder_id:
+            print(f"created folder {created_folder_id}")
+            synced_folder = SyncedFolder(
+                user=folder.owner,
+                folder=folder,
+                drive_object_id=created_folder_id,
+                drive_object_parent_id=parent_folder_id,
+            )
+            synced_folder.save()
+            folder.owner.notify("Folder synced with drive", "google folder created", initiator=folder.owner,
+                            level=Notification.Level.SUCCESS)
+    except Exception as e:
+        print("error occured while creating folder on drive", e)
 
 
 @shared_task
 def upload_file_to_google_drive_task(file_id):
-    # TODO - create folder if not exists
     file_instance = File.objects.get(pk=file_id)
-    print()
-    upload_file(file_instance.title, file_instance.file.path, file_instance.folder.get_drive_folder_id())
 
+    parent_folder_id = file_instance.folder.get_drive_folder_id()
+    # if not parent_folder_id:
+    #     parent_folder_id = file_instance.folder.create_folder_on_drive()
+
+    try:
+        uploaded_file = upload_file(
+            title=file_instance.title,
+            path=file_instance.file.path,
+            folder_id=parent_folder_id
+        )
+
+        if uploaded_file:
+            synced_file = SyncedFile(
+                user=file_instance.owner,
+                file=file_instance,
+                drive_object_id=uploaded_file['id'],
+                drive_object_parent_id=parent_folder_id,
+                additional_data=uploaded_file
+            )
+            synced_file.save()
+            file_instance.owner.notify("File synced with drive", "google file uploaded successfully",
+                                       initiator=file_instance.owner, level=Notification.Level.SUCCESS)
+
+    except Exception as e:
+        print("error occured while uploading file to Google Drive", e)
 
 @shared_task
 def upload_file_to_google_cloud(file_id):

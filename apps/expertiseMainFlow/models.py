@@ -6,11 +6,10 @@ import uuid
 import os
 import shutil
 
-from apps.expertiseMainFlow.backup.drive import get_folder_by_name
+from apps.expertiseMainFlow.backup.drive import get_folder_by_name, create_folder
 from apps.expertiseMainFlow.utils import get_upload_to
 
 User = get_user_model()
-
 
 class Tag(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
@@ -57,9 +56,12 @@ class ExpertiseFolder(models.Model):
         super().delete(*args, **kwargs)
 
     def get_drive_folder_id(self):
-        folder = get_folder_by_name(self.uuid)
+        folder = get_folder_by_name(self.title, parent_folder_id=self.owner.get_user_root_folder_id())
+        print(f"parent folder of toot: ", folder)
         return folder['id'] if folder else None
 
+    def create_folder_on_drive(self):
+        return create_folder(self.title, parent_folder_id=self.owner.get_user_root_folder_id())
 
 class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
@@ -153,9 +155,29 @@ class FolderData(models.Model):
                 raise NotImplementedError(self.field.data_type)
 
 # rename to shared root folder
-class SharedFolderData(models.Model):
+class SharedRootFolderData(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    user = models.ForeignKey(User, related_name="shared_folders", on_delete=models.CASCADE, null=False, blank=False)
+    user = models.ForeignKey(User, related_name="shared_folders", on_delete=models.CASCADE, unique=True, null=False, blank=False)
     drive_folder_name = models.CharField(max_length=255, null=False, blank=False)
     drive_folder_id = models.CharField(max_length=255, null=False, blank=False)
     additional_data = models.JSONField(null=True, blank=True)
+
+class SyncedFolder(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    user = models.ForeignKey(User, related_name="synced_data_user_folder", on_delete=models.CASCADE, null=False, blank=False)
+    folder = models.ForeignKey(ExpertiseFolder, related_name="synced_data_folder", on_delete=models.CASCADE, null=False, blank=False)
+    drive_object_id = models.CharField(max_length=255, null=False, blank=False)
+    drive_object_parent_id = models.CharField(max_length=255, null=False, blank=False)
+    additional_data = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class SyncedFile(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    user = models.ForeignKey(User, related_name="synced_data_user_file", on_delete=models.CASCADE, null=False, blank=False)
+    file = models.ForeignKey(File, related_name="synced_data_file", on_delete=models.CASCADE, null=False, blank=False)
+    drive_object_id = models.CharField(max_length=255, null=False, blank=False)
+    drive_object_parent_id = models.CharField(max_length=255, null=False, blank=False)
+    additional_data = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

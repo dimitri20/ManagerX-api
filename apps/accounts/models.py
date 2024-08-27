@@ -1,7 +1,6 @@
 import uuid
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -10,6 +9,7 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 
 class AbstractUser(AbstractBaseUser, PermissionsMixin):
     """
@@ -96,6 +96,11 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
         notification.save()
 
         send_notification.delay(notification.uuid)
+
+    def get_user_root_folder_id(self):
+        from apps.expertiseMainFlow.models import SharedRootFolderData
+
+        return SharedRootFolderData.objects.get(user=self).drive_folder_id
 
 
 class UserAccount(AbstractUser):
