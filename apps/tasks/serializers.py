@@ -19,7 +19,6 @@ class SubtaskCreateSerializer(serializers.ModelSerializer):
 class SubtaskListSerializer(serializers.ModelSerializer):
     creator = CustomUserDetailsSerializer()
     assign_to = CustomUserDetailsSerializer()
-    folder = ExpertiseFolderSimpleSerializer()
 
     class Meta:
         model = SubTask
