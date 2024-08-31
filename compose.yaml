@@ -1,4 +1,59 @@
 services:
+
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    volumes:
+      - ./rclone/config:/config/rclone
+      - ./rclone/logs:/logs
+      - ./cache:/root/.cache/rclone # This is for the WebUI, not VFS
+      - /mnt:/hostfs:shared
+      - /var/cache/rclone:/vfsCache
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    command:
+      - rcd
+      - --rc-web-gui
+      - --rc-web-gui-no-open-browser
+      - --rc-addr=:5572
+      - --rc-user=admin
+      - --rc-pass=admin
+      - --log-file=/logs/rclone.log
+      - --log-level=NOTICE
+      - --cache-dir=/vfsCache
+    networks:
+      - rclone-net
+    ports:
+      - 5572:5572
+    environment:
+      - TZ=America/New_York
+    restart: unless-stopped
+
+  rclone_initializer:
+    build:
+      context: ./rclone
+    container_name: rclone_initializer
+    environment:
+      - RCLONE_USERNAME=admin
+      - RCLONE_PASSWORD=admin
+      - RCLONE_PORT=5572
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./rclone/mounts.json:/app/mounts.json
+    restart: unless-stopped
+    depends_on:
+      - rclone
+    networks:
+      - rclone-net
+
   db:
     image: postgres:15
     volumes:
@@ -19,7 +74,7 @@ services:
       - .:/usr/src/app/
       - ./media:/usr/src/app/media/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /mnt/google-drive:/usr/src/app/media/google-drive # Share the mounted directory
+      - /mnt:/usr/src/app/media/mnt
     ports:
       - "8000:8000"
     depends_on:
@@ -50,7 +105,7 @@ services:
     volumes:
       - .:/usr/src/app/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /mnt/google-drive:/usr/src/app/media/google-drive # Share the mounted directory
+      - /home/nindza/gdrive/:/usr/src/app/media/gdrive/
     env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
@@ -67,6 +122,9 @@ services:
       - portainer_data:/portainer_data
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+
+networks:
+  rclone-net:
 
 volumes:
   postgres_data:
