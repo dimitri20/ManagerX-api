@@ -19,6 +19,7 @@ services:
       - .:/usr/src/app/
       - ./media:/usr/src/app/media/
       - ~/Documents/credentials/:/usr/src/credentials/
+      - /mnt/google-drive:/usr/src/app/media/google-drive # Share the mounted directory
     ports:
       - "8000:8000"
     depends_on:
@@ -49,6 +50,7 @@ services:
     volumes:
       - .:/usr/src/app/
       - ~/Documents/credentials/:/usr/src/credentials/
+      - /mnt/google-drive:/usr/src/app/media/google-drive # Share the mounted directory
     env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/

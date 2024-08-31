@@ -15,8 +15,6 @@ from apps.expertiseMainFlow.models import File
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers import FileSerializer
 
-from apps.expertiseMainFlow.tasks import upload_file_to_google_drive_task
-
 
 class UploadFileView(CreateAPIView):
     serializer_class = FileSerializer

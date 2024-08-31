@@ -1,0 +1,16 @@
+[
+  {
+    "fs": "GoogleDrive:",
+    "mountPoint": "/hostfs/gdrive/gdrive_0",
+    "mountOpt": {
+      "AllowOther": true,
+      "AllowNonEmpty": true
+    },
+    "vfsOpt": {
+      "CacheMode": "full"
+    }
+  }
+]
+
+// --log-file /log/rclone.log --log-level ERROR --umask 002 --buffer-size 128M
+//--checkers 20 --transfers 5 --vfs-read-ahead 1G --vfs-cache-mode writes --allow-other --allow-non-empty

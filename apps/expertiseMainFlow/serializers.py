@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, ExpertiseFolder, Tag, CustomField, FolderData, SharedRootFolderData, SyncedFolder, SyncedFile
+from .models import File, ExpertiseFolder, Tag, CustomField, FolderData
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 
@@ -12,19 +12,6 @@ class FileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('uuid', 'created_at', 'updated_at')
 
-    def get_drive_url(self, obj):
-        synced_file = SyncedFile.objects.filter(file_id=obj.uuid)
-
-        if synced_file.count() <= 0:
-            return None
-
-        if synced_file[0].additional_data is None:
-            return None
-
-        if not 'webViewLink' in synced_file[0].additional_data:
-            return None
-
-        return synced_file[0].additional_data['webViewLink']
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -174,8 +161,3 @@ class ExpertiseFolderSimpleSerializer(serializers.ModelSerializer):
         model = ExpertiseFolder
         fields = ['uuid', 'title']
 
-
-class SharedFolderDataSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SharedRootFolderData
-        fields = '__all__'

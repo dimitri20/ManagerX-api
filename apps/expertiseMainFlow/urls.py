@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import files, folders, backup
+from .views import files, folders
 
 urlpatterns = [
     path('folder/create/', folders.CreateExpertiseFolderView.as_view(), name='folder'),
@@ -18,7 +18,6 @@ urlpatterns = [
     path('file/<uuid:uuid>/delete/', files.DeleteFileView.as_view(), name='delete-file'),
     path('file/<uuid:uuid>/download/', files.DownloadFileView.as_view(), name='download-file'),
 
-    path('backup/create-user-folders/', backup.CreateUserFoldersOnDrive.as_view(), name='backup-user-folders'),
     # path('email/<str:name>/messages/list/', views.EMailMessagesListView.as_view(), name='email-messages-list'),
     # path('email/messages/import-files/', views.ImportAttachmentsFromMail.as_view(), name='email-import-files'),
     # path('email/<str:name>/fetch/', views.FetchMailWithServer.as_view(), name='fetch-mail'),
