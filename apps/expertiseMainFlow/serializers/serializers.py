@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import File, ExpertiseFolder, Tag, CustomField, FolderData
+from apps.expertiseMainFlow.models import File, ExpertiseFolder, Tag, CustomField, FolderData
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 

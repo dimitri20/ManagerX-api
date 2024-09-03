@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.serializers import CustomUserDetailsSerializer
-from apps.expertiseMainFlow.serializers import ExpertiseFolderSimpleSerializer
+from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSimpleSerializer
 from apps.tasks.models import Task, SubTask
 from django.utils import timezone
 

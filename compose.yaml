@@ -7,7 +7,7 @@ services:
       - ./rclone/config:/config/rclone
       - ./rclone/logs:/logs
       - ./cache:/root/.cache/rclone # This is for the WebUI, not VFS
-      - /mnt:/hostfs:shared
+      - /Users/guluadim/mnt:/hostfs:shared
       - /var/cache/rclone:/vfsCache
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
@@ -28,8 +28,6 @@ services:
       - --log-file=/logs/rclone.log
       - --log-level=NOTICE
       - --cache-dir=/vfsCache
-    networks:
-      - rclone-net
     ports:
       - 5572:5572
     environment:
@@ -51,8 +49,6 @@ services:
     restart: unless-stopped
     depends_on:
       - rclone
-    networks:
-      - rclone-net
 
   db:
     image: postgres:15
@@ -74,7 +70,7 @@ services:
       - .:/usr/src/app/
       - ./media:/usr/src/app/media/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /mnt:/usr/src/app/media/mnt
+      - /Users/guluadim/mnt:/usr/src/app/media/mnt
     ports:
       - "8000:8000"
     depends_on:
@@ -105,7 +101,7 @@ services:
     volumes:
       - .:/usr/src/app/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /home/nindza/gdrive/:/usr/src/app/media/gdrive/
+      - /Users/guluadim/mnt:/usr/src/app/media/mnt
     env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
@@ -122,9 +118,6 @@ services:
       - portainer_data:/portainer_data
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-
-networks:
-  rclone-net:
 
 volumes:
   postgres_data:

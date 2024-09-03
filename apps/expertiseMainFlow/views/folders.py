@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from apps.expertiseMainFlow.filters import FolderListFilter
 from apps.expertiseMainFlow.models import ExpertiseFolder, CustomField, FolderData
 from apps.expertiseMainFlow.paginations import StandardPagination
-from apps.expertiseMainFlow.serializers import ExpertiseFolderSerializer, \
+from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSerializer, \
     ExpertiseFolderDetailsSerializer, \
     CustomFieldSerializer, FolderDataCreateSerializer
 from django_filters.rest_framework import DjangoFilterBackend

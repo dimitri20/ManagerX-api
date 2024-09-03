@@ -13,7 +13,7 @@ import os
 from apps.expertiseMainFlow.filters import FileListFilter
 from apps.expertiseMainFlow.models import File
 from apps.expertiseMainFlow.paginations import StandardPagination
-from apps.expertiseMainFlow.serializers import FileSerializer
+from apps.expertiseMainFlow.serializers.serializers import FileSerializer
 
 
 class UploadFileView(CreateAPIView):

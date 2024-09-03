@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/DCS.iml" filepath="$PROJECT_DIR$/.idea/DCS.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ManagerX-api.iml" filepath="$PROJECT_DIR$/.idea/ManagerX-api.iml" />
     </modules>
   </component>
 </project>

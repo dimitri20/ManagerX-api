@@ -11,13 +11,11 @@ from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from apps.expertiseMainFlow.filters import EMailMessagesListFilter
 from apps.expertiseMainFlow.models import ExpertiseFolder, File, CustomField, FolderData
 from apps.expertiseMainFlow.paginations import StandardPagination
-from apps.expertiseMainFlow.serializers import FileSerializer, ExpertiseFolderSerializer, ExpertiseFolderDetailsSerializer, \
-    EmailSerializer, ImportAttachmentsFromMailSerializer, CustomFieldSerializer, FolderDataCreateSerializer
 
 import shutil
 import uuid
 
-
+from apps.expertiseMainFlow.serializers.serializers import ImportAttachmentsFromMailSerializer, EmailSerializer
 
 
 class SendEmailTestView(GenericAPIView):

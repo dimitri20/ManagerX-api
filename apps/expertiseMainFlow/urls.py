@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import files, folders, backup
+from .views import files, folders, rclone
 
 urlpatterns = [
     path('folder/create/', folders.CreateExpertiseFolderView.as_view(), name='folder'),
@@ -18,8 +18,11 @@ urlpatterns = [
     path('file/<uuid:uuid>/delete/', files.DeleteFileView.as_view(), name='delete-file'),
     path('file/<uuid:uuid>/download/', files.DownloadFileView.as_view(), name='download-file'),
 
-    path('rclone/upload/', backup.RcloneUploadView.as_view(), name="upload-file-rclone"),
-    path('rclone/list/', backup.ListRemoteView.as_view(), name="list-file-rclone")
+    path('rclone/list/', rclone.ListRemoteView.as_view(), name="list-file-rclone"),
+    path('rclone/mkdir/', rclone.RcloneMkDirView.as_view(), name="mkdir-file-rclone"),
+    path('rclone/movefile/', rclone.RcloneMoveFileView.as_view(), name="mv-file-rclone"),
+    path('rclone/publiclink/', rclone.RclonePublicLinkView.as_view(), name="pub-link-rclone"),
+
     # path('email/<str:name>/messages/list/', views.EMailMessagesListView.as_view(), name='email-messages-list'),
     # path('email/messages/import-files/', views.ImportAttachmentsFromMail.as_view(), name='email-import-files'),
     # path('email/<str:name>/fetch/', views.FetchMailWithServer.as_view(), name='fetch-mail'),
