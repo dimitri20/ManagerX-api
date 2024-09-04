@@ -14,7 +14,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from ..rclone.endpoints import RcloneOperations
 from ..rclone.rclone import Rclone
 from ..serializers.rclone_request_serializers import ListRemoteRequestSerializer, BaseRemoteRequestSerializer, \
-    MoveFileRequestSerializer, PublicLinkRequestSerializer
+    MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer
 from ..serializers.rclone_response_serializers import ListRemoteResponseSerializer, PublicLinkResponseSerializer
 from ..utils import validate_response
 
@@ -23,16 +23,6 @@ from django.conf import settings
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-RCLONE_USER = settings.RCLONE_USER
-RCLONE_PASS = settings.RCLONE_PASS
-RCLONE_ADDR = settings.RCLONE_ADDR
-RCLONE_URL = f"http://rclone:5572"
-
-commonHeaders = {
-    'Accept': 'application/json, text/plain, */*',
-    'Connection': 'keep-alive',
-    'Content-Type': 'application/json',
-}
 
 class ListRemoteView(APIView):
     """
@@ -81,6 +71,42 @@ class ListRemoteView(APIView):
         return response
 
 
+class UploadFileView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    @swagger_auto_schema(
+        request_body=FileUploadSerializer,  # Serializer defines the structure of the request
+    )
+    def post(self, request):
+        # Use the serializer to validate the incoming data
+        serializer = FileUploadSerializer(data=request.data)
+
+        if serializer.is_valid():
+            # Extract validated data
+            fs = serializer.validated_data['fs']
+            remote = serializer.validated_data['remote']
+            file = serializer.validated_data['file']
+
+
+            files = {
+                'file': request.FILES['file'],
+            }
+            data = {
+                'fs': fs,
+                'remote': remote,
+            }
+
+            # Instantiate the Rclone object
+            rclone_instance = Rclone()
+
+            (rclone_instance
+            .set_operation(RcloneOperations.OPERATIONS_UPLOAD_FILE)
+            .set_request_serializer(BaseRemoteRequestSerializer)  # Ensure this is the correct serializer for the request
+            .set_response_serializer(serializers.Serializer))
+
+            return rclone_instance.execute(data=data, files=files)
+
+
 class RcloneMkDirView(APIView):
     """
     API View for creating a directory using Rclone.
@@ -92,7 +118,7 @@ class RcloneMkDirView(APIView):
         This takes the following parameters:
             fs - a remote name string e.g. "drive:"
             remote - a path within that remote e.g. "dir"
-            See the mkdir[https://rclone.org/commands/rclone_mkdir/] command for more information on the above.
+            See the mkdir[https://rclone.oUrg/commands/rclone_mkdir/] command for more information on the above.
     """
 
     @swagger_auto_schema(request_body=BaseRemoteRequestSerializer)

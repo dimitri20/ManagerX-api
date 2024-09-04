@@ -4,6 +4,12 @@ class BaseRemoteRequestSerializer(serializers.Serializer):
     fs = serializers.CharField(required=True)
     remote = serializers.CharField(default="", required=False, allow_blank=True)
 
+    def validate_fs(self, value):
+        # Example validation (you can customize this)
+        if not value.endswith(':'):
+            raise serializers.ValidationError("The fs field must end with a colon (e.g., 'drive:').")
+        return value
+
 class ListRemoteOptionsSerializer(serializers.Serializer):
     recurse = serializers.BooleanField(required=False, default=False)
     noModTime = serializers.BooleanField(required=False, default=False)
@@ -30,3 +36,6 @@ class MoveFileRequestSerializer(serializers.Serializer):
 class PublicLinkRequestSerializer(BaseRemoteRequestSerializer):
     unlink = serializers.BooleanField(required=False, default=False)
     expire = serializers.CharField(default="", required=False, allow_blank=True)
+
+class FileUploadSerializer(BaseRemoteRequestSerializer):
+    file = serializers.FileField(required=True)

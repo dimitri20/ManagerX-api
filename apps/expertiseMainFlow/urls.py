@@ -18,6 +18,7 @@ urlpatterns = [
     path('file/<uuid:uuid>/delete/', files.DeleteFileView.as_view(), name='delete-file'),
     path('file/<uuid:uuid>/download/', files.DownloadFileView.as_view(), name='download-file'),
 
+    path('rclone/uploadfile/', rclone.UploadFileView.as_view(), name='rclone-uploadfile'),
     path('rclone/list/', rclone.ListRemoteView.as_view(), name="list-file-rclone"),
     path('rclone/mkdir/', rclone.RcloneMkDirView.as_view(), name="mkdir-file-rclone"),
     path('rclone/movefile/', rclone.RcloneMoveFileView.as_view(), name="mv-file-rclone"),

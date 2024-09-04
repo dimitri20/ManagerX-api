@@ -59,11 +59,12 @@ class Rclone(RcloneAbstract):
     Class for executing Rclone operations using provided serializers and configurations.
     """
 
-    def execute(self, data: dict) -> Response:
+    def execute(self, data: dict, files: Optional[dict] = None) -> Response:
         """
         Executes the Rclone operation based on the set operation type and serializers.
 
         :param data: Data to be sent in the request.
+        :param files: Files to be uploaded (for file-based operations like uploading to Rclone).
         :return: Response from the Rclone server.
         """
         if not self._operation:
@@ -75,11 +76,21 @@ class Rclone(RcloneAbstract):
             return Response({"error": "Request serializer not set"}, status=status.HTTP_400_BAD_REQUEST)
 
         self._full_url = f'{RCLONE_ADDR}/{self._operation.value}'
-        self._headers = {
-            'Accept': 'application/json, text/plain, */*',
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/json',
-        }
+
+        # Determine the headers based on whether we are uploading files or sending JSON data
+        if files:
+            # Set headers for file upload (multipart/form-data)
+            self._headers = {
+                'Accept': 'application/json, text/plain, */*',
+                'Connection': 'keep-alive',
+            }
+        else:
+            # Set headers for JSON requests
+            self._headers = {
+                'Accept': 'application/json, text/plain, */*',
+                'Connection': 'keep-alive',
+                'Content-Type': 'application/json',
+            }
 
         serializer = self._request_serializer(data=data)
         if not serializer.is_valid():
@@ -90,12 +101,24 @@ class Rclone(RcloneAbstract):
         logger.info(f"Sending request to {self._full_url} with data: {validated_data}")
 
         try:
-            response = requests.post(
-                self._full_url,
-                headers=self._headers,
-                json=validated_data,
-                auth=HTTPBasicAuth(RCLONE_USER, RCLONE_PASS)
-            )
+            # If there are files, we send them as multipart/form-data
+            if files:
+                logger.info("Uploading files to Rclone server...")
+                response = requests.post(
+                    self._full_url,
+                    headers=self._headers,
+                    params=validated_data,
+                    files=files,
+                    auth=HTTPBasicAuth(RCLONE_USER, RCLONE_PASS)
+                )
+            else:
+                # Otherwise, send a standard JSON request
+                response = requests.post(
+                    self._full_url,
+                    headers=self._headers,
+                    json=validated_data,
+                    auth=HTTPBasicAuth(RCLONE_USER, RCLONE_PASS)
+                )
 
             return self._validate_response(response)
 

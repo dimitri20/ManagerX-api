@@ -9,3 +9,4 @@ class RcloneOperations(Enum):
     OPERATIONS_PURGE = 'operations/purge'  # Remove a directory or container and all of its contents
     OPERATIONS_REMOVE_DIR = 'operations/rmdir'  # Remove an empty directory or container
     OPERATIONS_REMOVE_DIRS = 'operations/rmdirs'  # Remove all the empty directories in the path
+    OPERATIONS_UPLOAD_FILE = 'operations/uploadfile' # Upload file using multiform/form-data
