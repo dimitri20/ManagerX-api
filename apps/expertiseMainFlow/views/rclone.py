@@ -131,7 +131,7 @@ class RcloneMkDirView(APIView):
             rclone_instance
             .set_operation(RcloneOperations.OPERATIONS_MKDIR)
             .set_request_serializer(BaseRemoteRequestSerializer)  # Ensure this is the correct serializer for the request
-            .set_response_serializer(ListRemoteResponseSerializer)  # Ensure this is the correct serializer for the response
+            .set_response_serializer(serializers.Serializer)  # Ensure this is the correct serializer for the response
             .execute(request.data)
         )
 

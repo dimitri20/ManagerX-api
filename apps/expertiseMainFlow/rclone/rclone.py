@@ -92,7 +92,9 @@ class Rclone(RcloneAbstract):
                 'Content-Type': 'application/json',
             }
 
+
         serializer = self._request_serializer(data=data)
+
         if not serializer.is_valid():
             logger.error(f"Invalid data: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
