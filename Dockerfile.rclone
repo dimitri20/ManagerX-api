@@ -1,8 +1,0 @@
-# Dockerfile for rclone
-FROM rclone/rclone:latest
-
-# Copy rclone config file to the container
-COPY rclone.conf /config/rclone/rclone.conf
-
-# Set the entrypoint to run rclone
-ENTRYPOINT ["rclone"]

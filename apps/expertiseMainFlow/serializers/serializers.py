@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from apps.expertiseMainFlow.models import File, ExpertiseFolder, Tag, CustomField, FolderData
+from apps.expertiseMainFlow.models import File, ExpertiseFolder, Tag, CustomField, ExpertiseAdditionalData, \
+    ExpertiseData
 from django_mailbox.models import Message, Mailbox
 from django_mailbox.models import MessageAttachment
 
@@ -65,7 +66,7 @@ class ReadWriteSerializerMethodField(serializers.SerializerMethodField):
 class CustomFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomField
-        fields = ['id', 'name', 'label', 'data_type']
+        fields = ['id', 'name', 'data_type']
 
 
 class KeyValuePairSerializer(serializers.Serializer):
@@ -74,10 +75,10 @@ class KeyValuePairSerializer(serializers.Serializer):
 
 
 class FolderDataCreateSerializer(serializers.Serializer):
-    expertise_folder = serializers.PrimaryKeyRelatedField(queryset=ExpertiseFolder.objects.all())
+    expertise_data = serializers.PrimaryKeyRelatedField(queryset=ExpertiseData.objects.all())
     key_value_pair = KeyValuePairSerializer(many=True)
 
-    def create_or_update_folder_data(self, expertise_folder, key_value_pair):
+    def create_or_update_folder_data(self, expertise_data, key_value_pair):
         type_to_data_store_name_map = {
             CustomField.FieldDataType.STRING: "value_string",
             CustomField.FieldDataType.URL: "value_url",
@@ -93,15 +94,15 @@ class FolderDataCreateSerializer(serializers.Serializer):
             value = pair.get('value')
             data_store_name = type_to_data_store_name_map[custom_field.data_type]
 
-            instance, _ = FolderData.objects.update_or_create(
-                expertise_folder=expertise_folder,
+            instance, _ = ExpertiseAdditionalData.objects.update_or_create(
+                expertise_data=expertise_data,
                 field=custom_field,
                 defaults={data_store_name: value},
             )
             instances.append(instance)
         return instances
 
-    def get_value(self, obj: FolderData):
+    def get_value(self, obj: ExpertiseAdditionalData):
         return obj.value
 
 
@@ -110,15 +111,23 @@ class FolderDataSerializer(serializers.ModelSerializer):
     field = CustomFieldSerializer(read_only=True)
 
     class Meta:
-        model = FolderData
+        model = ExpertiseAdditionalData
         fields = ['field', 'value']
 
-    def get_value(self, obj: FolderData):
+    def get_value(self, obj: ExpertiseAdditionalData):
         return obj.value
 
 
-class ExpertiseFolderSerializer(serializers.ModelSerializer):
+class ExpertiseDataSerializer(serializers.ModelSerializer):
     custom_fields = FolderDataSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ExpertiseData
+        fields = '__all__'
+        read_only_fields = ('uuid',)
+        depth = 1
+
+class ExpertiseFolderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExpertiseFolder
@@ -126,7 +135,7 @@ class ExpertiseFolderSerializer(serializers.ModelSerializer):
         read_only_fields = ('uuid', 'created_at', 'updated_at')
 
     def get_custom_fields(self, obj):
-        return FolderData.objects.get(expertise_folder=obj.uuid)
+        return ExpertiseAdditionalData.objects.get(expertise_folder=obj.uuid)
 
     def validate_title(self, value):
         # Get the user from the context (provided in the view)
@@ -142,7 +151,6 @@ class ExpertiseFolderSerializer(serializers.ModelSerializer):
 
 class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
     files = FileSerializer(many=True, read_only=True)
-    custom_fields = FolderDataSerializer(many=True, read_only=True)
 
     class Meta:
         model = ExpertiseFolder
@@ -153,7 +161,7 @@ class ExpertiseFolderDetailsSerializer(serializers.ModelSerializer):
         return File.objects.get(folder=obj.uuid)
 
     def get_custom_fields(self, obj):
-        return FolderData.objects.get(expertise_folder=obj.uuid)
+        return ExpertiseAdditionalData.objects.get(expertise_folder=obj.uuid)
 
 
 class ExpertiseFolderSimpleSerializer(serializers.ModelSerializer):

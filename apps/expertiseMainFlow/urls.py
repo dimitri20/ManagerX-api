@@ -7,9 +7,12 @@ urlpatterns = [
     path('folder/<str:uuid>/details/', folders.ExpertiseFolderDetailsView.as_view(), name='folder-details'),
     path('folder/<str:uuid>/delete/', folders.DeleteExpertiseFolderView.as_view(), name='folder-delete'),
     path('folder/list/', folders.ListExpertiseFolderView.as_view(), name='folder-list'),
-    path('folder/custom-fields/', folders.CustomFieldViewSet.as_view(), name='custom-fields'),
-    path('folder/folder-data/', folders.FolderDataViewSet.as_view(), name='folder-data'),
-    path('folder/custom-fields/list/', folders.CustomFieldListViewSet.as_view(), name='custom-fields-list'),
+
+    path('data/custom-fields/', folders.CustomFieldViewSet.as_view(), name='custom-fields'),
+    path('data/create/', folders.CreateExpertiseDataView.as_view(), name='data'),
+    path('data/create-expertise-data/', folders.FolderDataViewSet.as_view(), name='folder-data'),
+    path('data/custom-fields/list/', folders.CustomFieldListViewSet.as_view(), name='custom-fields-list'),
+    path('data/list/', folders.ListDataViewSet.as_view(), name='list-data'),
 
     path('file/upload/', files.UploadFileView.as_view(), name='upload-file'),
     path('file/list/', files.ListFileView.as_view(), name='file-list'),

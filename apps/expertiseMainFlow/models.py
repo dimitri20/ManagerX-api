@@ -7,6 +7,7 @@ import os
 import shutil
 
 from apps.expertiseMainFlow.utils import get_upload_to
+from apps.tasks.models import Task
 
 User = get_user_model()
 
@@ -54,6 +55,11 @@ class ExpertiseFolder(models.Model):
             # Call the superclass delete method to delete the model instance
         super().delete(*args, **kwargs)
 
+class ExpertiseData(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    conclusionNumber = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    task = models.ForeignKey(Task, related_name="expertise_data", on_delete=models.CASCADE, null=True, blank=True, unique=True)
+
 class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     title = models.CharField(max_length=255, null=True, blank=True)
@@ -97,7 +103,7 @@ class CustomField(models.Model):
     label = models.CharField(max_length=255, null=False, blank=False, default=name.__str__())
     data_type = models.CharField(max_length=255, choices=FieldDataType.choices, null=False, blank=False)
 
-class FolderData(models.Model):
+class ExpertiseAdditionalData(models.Model):
     field = models.ForeignKey(
         CustomField,
         blank=False,
@@ -107,8 +113,8 @@ class FolderData(models.Model):
         editable=False,
     )
 
-    expertise_folder = models.ForeignKey(
-        ExpertiseFolder,
+    expertise_data = models.ForeignKey(
+        ExpertiseData,
         blank=False,
         null=False,
         on_delete=models.CASCADE,

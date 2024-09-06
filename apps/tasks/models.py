@@ -3,7 +3,6 @@ from django.db import models
 import uuid
 from django.utils import timezone
 
-from apps.expertiseMainFlow.models import ExpertiseFolder
 
 
 User = get_user_model()
@@ -25,7 +24,7 @@ class Task(models.Model):
     assign_to = models.ForeignKey(User, related_name='task_assign_to', on_delete=models.CASCADE, null=True, blank=True)
     deadline_from = models.DateField(null=True, blank=True)
     deadline_to = models.DateField(null=True, blank=True)
-    folder = models.ForeignKey(ExpertiseFolder, related_name='task_folder', on_delete=models.CASCADE, null=True, blank=True)
+    drive_folder_path = models.CharField(max_length=255, null=True, blank=True)
     sent_to_customer = models.BooleanField(default=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

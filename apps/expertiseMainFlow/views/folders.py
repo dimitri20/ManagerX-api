@@ -6,11 +6,11 @@ from rest_framework.generics import UpdateAPIView, DestroyAPIView
 from rest_framework.response import Response
 
 from apps.expertiseMainFlow.filters import FolderListFilter
-from apps.expertiseMainFlow.models import ExpertiseFolder, CustomField, FolderData
+from apps.expertiseMainFlow.models import ExpertiseFolder, CustomField, ExpertiseAdditionalData, ExpertiseData
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSerializer, \
     ExpertiseFolderDetailsSerializer, \
-    CustomFieldSerializer, FolderDataCreateSerializer
+    CustomFieldSerializer, FolderDataCreateSerializer, ExpertiseDataSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
@@ -52,6 +52,12 @@ class ListExpertiseFolderView(ListAPIView):
     ordering_fields = '__all__'
     queryset = ExpertiseFolder.objects.all()
 
+class ListDataViewSet(ListAPIView):
+    serializer_class = ExpertiseDataSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    pagination_class = StandardPagination
+    ordering_fields = '__all__'
+    queryset = ExpertiseData.objects.all()
 
 class CustomFieldViewSet(CreateAPIView):
     serializer_class = CustomFieldSerializer
@@ -65,20 +71,24 @@ class CustomFieldListViewSet(ListAPIView):
 
 class FolderDataViewSet(GenericAPIView):
     serializer_class = FolderDataCreateSerializer
-    queryset = FolderData.objects.all()
+    queryset = ExpertiseAdditionalData.objects.all()
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            expertise_folder = serializer.validated_data['expertise_folder']
+            expertise_folder = serializer.validated_data['expertise_data']
             key_value_pairs = serializer.validated_data['key_value_pair']
 
             instances = serializer.create_or_update_folder_data(expertise_folder, key_value_pairs)
             response_data = [
-                {'id': instance.id, 'expertise_folder': instance.expertise_folder.uuid, 'field': instance.field.id} for
+                {'id': instance.id, 'expertise_data': instance.expertise_data.uuid, 'field': instance.field.id} for
                 instance in instances]
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CreateExpertiseDataView(CreateAPIView):
+    serializer_class = ExpertiseDataSerializer
+    queryset = ExpertiseAdditionalData.objects.all()
 
 
 class UpdateExpertiseFolderView(UpdateAPIView):
