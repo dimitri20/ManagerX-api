@@ -117,6 +117,11 @@ class FolderDataSerializer(serializers.ModelSerializer):
     def get_value(self, obj: ExpertiseAdditionalData):
         return obj.value
 
+class ExpertiseDataCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpertiseData
+        fields = '__all__'
+        read_only_fields = ('uuid',)
 
 class ExpertiseDataSerializer(serializers.ModelSerializer):
     custom_fields = FolderDataSerializer(many=True, read_only=True)
@@ -124,7 +129,7 @@ class ExpertiseDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpertiseData
         fields = '__all__'
-        read_only_fields = ('uuid',)
+        read_only_fields = ('uuid', 'custom_fields', )
         depth = 1
 
 class ExpertiseFolderSerializer(serializers.ModelSerializer):
@@ -168,4 +173,3 @@ class ExpertiseFolderSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpertiseFolder
         fields = ['uuid', 'title']
-

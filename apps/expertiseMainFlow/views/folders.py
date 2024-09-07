@@ -1,5 +1,6 @@
 import uuid
 
+from allauth.headless.base.views import APIView
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, GenericAPIView
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
@@ -10,7 +11,7 @@ from apps.expertiseMainFlow.models import ExpertiseFolder, CustomField, Expertis
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSerializer, \
     ExpertiseFolderDetailsSerializer, \
-    CustomFieldSerializer, FolderDataCreateSerializer, ExpertiseDataSerializer
+    CustomFieldSerializer, FolderDataCreateSerializer, ExpertiseDataSerializer, ExpertiseDataCreateSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
@@ -87,7 +88,7 @@ class FolderDataViewSet(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CreateExpertiseDataView(CreateAPIView):
-    serializer_class = ExpertiseDataSerializer
+    serializer_class = ExpertiseDataCreateSerializer
     queryset = ExpertiseAdditionalData.objects.all()
 
 
@@ -101,3 +102,4 @@ class DeleteExpertiseFolderView(DestroyAPIView):
     serializer_class = ExpertiseFolderSerializer
     queryset = ExpertiseFolder.objects.all()
     lookup_field = 'uuid'
+

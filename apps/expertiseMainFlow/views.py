@@ -9,7 +9,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.expertiseMainFlow.filters import EMailMessagesListFilter
-from apps.expertiseMainFlow.models import ExpertiseFolder, File, CustomField, FolderData
+from apps.expertiseMainFlow.models import ExpertiseFolder, File, CustomField
 from apps.expertiseMainFlow.paginations import StandardPagination
 
 import shutil
@@ -85,6 +85,7 @@ class ImportAttachmentsFromMail(GenericAPIView):
             return Response({'attachments': attachments}, status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
