@@ -6,12 +6,11 @@ from django_mailbox.models import MessageAttachment
 
 
 class FileSerializer(serializers.ModelSerializer):
-    drive_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = File
         fields = '__all__'
-        read_only_fields = ('uuid', 'created_at', 'updated_at')
+        read_only_fields = ('uuid', 'title', 'owner', 'created_at', 'updated_at')
 
 
 class TagSerializer(serializers.ModelSerializer):

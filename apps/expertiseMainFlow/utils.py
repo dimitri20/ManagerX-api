@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_upload_to(instance, filename):
-    return f"{settings.GDRIVE_UPLOADS_PATH}/{filename.replace(' ', '_')}"
+    return f"attachments/{instance.subtask.uuid}/{filename.replace(' ', '_')}"
 
 
 def validate_response(response, response_serializer):

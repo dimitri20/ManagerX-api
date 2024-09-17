@@ -6,7 +6,7 @@ services:
     volumes:
       - ./rclone/config:/config/rclone
       - ./rclone/logs:/logs
-      - ./cache:/root/.cache/rclone # This is for the WebUI, not VFS
+      - ./rclone/cache:/root/.cache/rclone # This is for the WebUI, not VFS
       - /Users/guluadim/mnt:/hostfs:shared
       - /var/cache/rclone:/vfsCache
       - /etc/passwd:/etc/passwd:ro
@@ -70,7 +70,7 @@ services:
       - .:/usr/src/app/
       - ./media:/usr/src/app/media/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /Users/guluadim/mnt:/usr/src/app/media/mnt
+#      - /Users/guluadim/mnt:/usr/src/app/media/mnt
     ports:
       - "8000:8000"
     depends_on:
@@ -101,7 +101,7 @@ services:
     volumes:
       - .:/usr/src/app/
       - ~/Documents/credentials/:/usr/src/credentials/
-      - /Users/guluadim/mnt:/usr/src/app/media/mnt
+#      - /Users/guluadim/mnt:/usr/src/app/media/mnt
     env_file: ".env"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/

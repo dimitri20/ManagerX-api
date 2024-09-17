@@ -2,10 +2,10 @@ from django.contrib.auth import get_user_model
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
-from apps.tasks.models import Task, SubTask
+from apps.tasks.models import Task, SubTask, Comment
 from apps.tasks.paginations import StandardPagination
 from apps.tasks.serializers import TaskListSerializer, SubtaskListSerializer, TaskCreateSerializer, \
-    SubtaskCreateSerializer
+    SubtaskCreateSerializer, CommentSerializer, CommentCreateSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
@@ -94,3 +94,17 @@ class SubtaskListView(ListAPIView):
     pagination_class = StandardPagination
     ordering_fields = '__all__'
     queryset = SubTask.objects.all()
+
+
+class SubtaskCommentCreateView(CreateAPIView):
+    serializer_class = CommentCreateSerializer
+    queryset = Comment.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.validated_data['creator'] = self.request.user
+        serializer.save()
+
+class SubtaskCommentDeleteView(DestroyAPIView):
+    serializer_class = CommentCreateSerializer
+    queryset = Comment.objects.all()
+    lookup_field = 'uuid'

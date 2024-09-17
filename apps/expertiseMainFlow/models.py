@@ -7,7 +7,7 @@ import os
 import shutil
 
 from apps.expertiseMainFlow.utils import get_upload_to
-from apps.tasks.models import Task
+from apps.tasks.models import Task, SubTask
 
 User = get_user_model()
 
@@ -64,9 +64,8 @@ class File(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     title = models.CharField(max_length=255, null=True, blank=True)
     file = models.FileField(upload_to=get_upload_to, null=True, blank=True)
-    folder = models.ForeignKey(ExpertiseFolder, related_name='files', on_delete=models.CASCADE, null=True)
-    tags = models.ManyToManyField(Tag, related_name="file_tags", blank=True)
     owner = models.ForeignKey(User, related_name="expertise_files", on_delete=models.CASCADE, null=True, blank=True)
+    subtask = models.ForeignKey(SubTask, related_name="subtask_files", on_delete=models.CASCADE, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

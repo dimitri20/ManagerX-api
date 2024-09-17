@@ -1,9 +1,24 @@
 from rest_framework import serializers
 
 from apps.accounts.serializers import CustomUserDetailsSerializer
-from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSimpleSerializer
-from apps.tasks.models import Task, SubTask
+from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSimpleSerializer, FileSerializer
+from apps.tasks.models import Task, SubTask, Comment
 from django.utils import timezone
+
+class CommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
+
+class CommentSerializer(serializers.ModelSerializer):
+    creator = CustomUserDetailsSerializer()
+
+    class Meta:
+        model = Comment
+        read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
+        exclude = ('subtask',)
+        depth = 1
 
 class SubtaskCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +34,8 @@ class SubtaskCreateSerializer(serializers.ModelSerializer):
 class SubtaskListSerializer(serializers.ModelSerializer):
     creator = CustomUserDetailsSerializer()
     assign_to = CustomUserDetailsSerializer()
+    attachments = FileSerializer(source="subtask_files", many=True, read_only=True)
+    comments = CommentSerializer(source="subtask_comments", many=True, read_only=True)
 
     class Meta:
         model = SubTask
@@ -26,7 +43,9 @@ class SubtaskListSerializer(serializers.ModelSerializer):
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
         depth = 1
 
+
 class TaskCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Task
         fields = '__all__'

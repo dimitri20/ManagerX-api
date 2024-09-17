@@ -13,4 +13,7 @@ urlpatterns = [
     path('subtasks/<str:uuid>/', views.SubtaskDetailView.as_view(), name='task-detail'),
     path('subtasks/<str:uuid>/update/', views.SubtaskUpdateView.as_view(), name='update-task'),
     path('subtasks/<str:uuid>/delete/', views.SubtaskDeleteView.as_view(), name='delete-task'),
+
+    path('subtasks/comments/create/', views.SubtaskCommentCreateView.as_view(), name='create-subtask-comment'),
+    path('subtasks/comments/<str:uuid>/delete/', views.SubtaskCommentDeleteView.as_view(), name='delete-subtask-comment'),
 ]
