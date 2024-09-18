@@ -142,7 +142,7 @@ class ExpertiseAdditionalData(models.Model):
             case CustomField.FieldDataType.DATE:
                 return self.value_date
             case CustomField.FieldDataType.BOOL:
-                return self.value_int
+                return self.value_bool
             case CustomField.FieldDataType.INT:
                 return self.value_int
             case CustomField.FieldDataType.FLOAT:
