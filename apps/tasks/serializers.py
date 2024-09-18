@@ -11,6 +11,11 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
 
+class CommentUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('content',)
+
 class CommentSerializer(serializers.ModelSerializer):
     creator = CustomUserDetailsSerializer()
     replies = serializers.SerializerMethodField()
@@ -24,6 +29,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_replies(self, obj):
         child_comments = obj.children()
         return CommentSerializer(child_comments, many=True).data
+
 
 class SubtaskCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,7 +46,7 @@ class SubtaskListSerializer(serializers.ModelSerializer):
     creator = CustomUserDetailsSerializer()
     assign_to = CustomUserDetailsSerializer()
     attachments = FileSerializer(source="subtask_files", many=True, read_only=True)
-    comments = CommentSerializer(source="subtask_comments", many=True, read_only=True)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = SubTask
@@ -48,13 +54,17 @@ class SubtaskListSerializer(serializers.ModelSerializer):
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
         depth = 1
 
+    def get_comments(self, obj):
+        top_level_comments = obj.subtask_comments.filter(parent__isnull=True)
+        return CommentSerializer(top_level_comments, many=True).data
+
 
 class TaskCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
         fields = '__all__'
-        read_only_fields = ('uuid', 'creator', 'sent_to_customer', 'created_at', 'updated_at')
+        read_only_fields = ('uuid', 'creator', 'sent_to_customer', 'drive_folder_path', 'created_at', 'updated_at')
 
     def validate_deadline_to(self, value):
         if value and value < timezone.now().date():
