@@ -13,12 +13,17 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     creator = CustomUserDetailsSerializer()
+    replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         read_only_fields = ('uuid', 'creator', 'created_at', 'updated_at')
-        exclude = ('subtask',)
+        exclude = ('subtask', 'parent')
         depth = 1
+
+    def get_replies(self, obj):
+        child_comments = obj.children()
+        return CommentSerializer(child_comments, many=True).data
 
 class SubtaskCreateSerializer(serializers.ModelSerializer):
     class Meta:

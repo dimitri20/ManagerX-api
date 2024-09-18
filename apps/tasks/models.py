@@ -59,6 +59,10 @@ class Comment(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
     subtask = models.ForeignKey(SubTask, related_name='subtask_comments', on_delete=models.CASCADE, null=False, blank=False)
     creator = models.ForeignKey(User, related_name='subtask_comment_creator', on_delete=models.CASCADE, null=False)
-    comment = models.TextField(max_length=20000, null=False, blank=False)
+    content = models.TextField(max_length=20000, null=False, blank=False)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def children(self):
+        return Comment.objects.filter(parent=self)
