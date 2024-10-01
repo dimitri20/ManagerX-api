@@ -57,7 +57,7 @@ class ExpertiseFolder(models.Model):
 
 class ExpertiseData(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    conclusionNumber = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    conclusionNumber = models.CharField(max_length=255, null=True, blank=True)
     task = models.ForeignKey(Task, related_name="expertise_data", on_delete=models.CASCADE, null=True, blank=True, unique=True)
 
 class File(models.Model):

@@ -7,6 +7,7 @@ class TaskListFilter(django_filters.FilterSet):
     subtask_assign_to = django_filters.CharFilter(method='filter_by_subtask_assign_to')
     subtask_assigned_by_user = django_filters.CharFilter(method='filter_subtask_assigned_by_user')
     status = django_filters.CharFilter(method='filter_by_status')
+    exclude_created_expertise_data = django_filters.BooleanFilter(method='filter_by_exclude_created_expertise_data')
 
     class Meta:
         model = Task
@@ -23,6 +24,11 @@ class TaskListFilter(django_filters.FilterSet):
         # Split the comma-separated list of statuses
         status_list = value.split(',')
         return queryset.filter(status__in=status_list)
+
+    def filter_by_exclude_created_expertise_data(self, queryset, name, value):
+        if value:  # Exclude tasks with existing expertise data if value is True
+            return queryset.exclude(expertise_data__isnull=False)
+        return queryset
 
 class SubtaskListFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(method='filter_by_status')
