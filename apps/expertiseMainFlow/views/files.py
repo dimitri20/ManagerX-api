@@ -14,6 +14,7 @@ from apps.expertiseMainFlow.filters import FileListFilter
 from apps.expertiseMainFlow.models import File
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers.serializers import FileSerializer
+from apps.notifications.models import Notification
 
 
 class UploadFileView(CreateAPIView):
@@ -26,6 +27,13 @@ class UploadFileView(CreateAPIView):
             serializer.validated_data['owner'] = self.request.user
             serializer.validated_data['title'] = serializer.validated_data['file'].name
             serializer.save()
+
+            serializer.validated_data['subtask'].creator.notify(
+                initiator=self.request.user,
+                title="დაემატა დანართი",
+                message=f"მომხმარებელმა {self.request.user} დაამატა დანართი დავალებაზე: {serializer.validated_data['title']}",
+                level=Notification.Level.INFO
+            )
 
             return Response(
                 serializer.data,

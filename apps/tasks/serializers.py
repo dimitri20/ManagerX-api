@@ -60,6 +60,7 @@ class SubtaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
+    subtasks = SubtaskListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Task

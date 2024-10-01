@@ -22,15 +22,14 @@ class TaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
-        # if 'assign_to' in serializer.validated_data:
-        #
-        #     serializer.validated_data['assign_to'].notify(
-        #         initiator=self.request.user,
-        #         receiver=serializer.validated_data['assign_to'],
-        #         title="Created task",
-        #         message=f"User {self.request.user.username} created for you",
-        #         level=Notification.Level.INFO
-        #     )
+        if 'assign_to' in serializer.validated_data:
+
+            serializer.validated_data['assign_to'].notify(
+                initiator=self.request.user,
+                title="შეიქმნა პროექტი",
+                message=f"მომხმარებელმა {self.request.user} დაგავალათ პროექტი: {serializer.validated_data['title']}",
+                level=Notification.Level.INFO
+            )
 
 
 class TaskDetailView(RetrieveAPIView):
@@ -68,6 +67,15 @@ class SubtaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
+        if 'assign_to' in serializer.validated_data:
+
+            serializer.validated_data['assign_to'].notify(
+                initiator=self.request.user,
+                title="დავალება",
+                message=f"მომხმარებელმა {self.request.user} დაგავალათ დავალება: {serializer.validated_data['title']}",
+                level=Notification.Level.INFO
+            )
+
 
 class SubtaskDetailView(RetrieveAPIView):
     serializer_class = SubtaskListSerializer
@@ -102,6 +110,13 @@ class SubtaskCommentCreateView(CreateAPIView):
     def perform_create(self, serializer):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
+
+        serializer.validated_data['subtask'].creator.notify(
+            initiator=self.request.user,
+            title="დავალება",
+            message=f"მომხმარებელმა {self.request.user} დაამატა კომენტარი დავალებაზე: {serializer.validated_data['subtask'].title}",
+            level=Notification.Level.INFO
+        )
 
 class SubtaskCommentDeleteView(DestroyAPIView):
     serializer_class = CommentCreateSerializer

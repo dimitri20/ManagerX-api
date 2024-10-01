@@ -97,10 +97,6 @@ class AbstractUser(AbstractBaseUser, PermissionsMixin):
 
         send_notification.delay(notification.uuid)
 
-    def get_user_root_folder_id(self):
-        from apps.expertiseMainFlow.models import SharedRootFolderData
-
-        return SharedRootFolderData.objects.get(user=self).drive_folder_id
 
 
 class UserAccount(AbstractUser):
