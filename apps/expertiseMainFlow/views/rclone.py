@@ -3,18 +3,17 @@ import os
 import requests
 import logging
 
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from requests.auth import HTTPBasicAuth
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+from ..models import ExpertiseData
 from ..rclone.endpoints import RcloneOperations
 from ..rclone.rclone import Rclone
 from ..serializers.rclone_request_serializers import ListRemoteRequestSerializer, BaseRemoteRequestSerializer, \
-    MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer
+    MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer, GenerateConclusionRequestSerializer
 from ..serializers.rclone_response_serializers import ListRemoteResponseSerializer, PublicLinkResponseSerializer
 from ..utils import validate_response
 
@@ -217,3 +216,24 @@ class RclonePublicLinkView(APIView):
 
         return response
 
+
+class GenerateConclusionView(APIView):
+
+    @swagger_auto_schema(request_body=GenerateConclusionRequestSerializer)
+    def post(self, request):
+        serializer = GenerateConclusionRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            task_id = serializer.validated_data['task']
+            conclusion_number = serializer.validated_data['conclusionNumber']
+
+            # Find the ExpertiseData entry
+            try:
+                expertise_data = ExpertiseData.objects.get(task_id=task_id)
+                expertise_data.conclusionNumber = conclusion_number
+                expertise_data.save()
+
+                return Response({"message": "Conclusion number updated successfully."}, status=status.HTTP_200_OK)
+            except ExpertiseData.DoesNotExist:
+                return Response({"error": "ExpertiseData not found for the given task."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

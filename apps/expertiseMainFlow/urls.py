@@ -26,6 +26,7 @@ urlpatterns = [
     path('rclone/mkdir/', rclone.RcloneMkDirView.as_view(), name="mkdir-file-rclone"),
     path('rclone/movefile/', rclone.RcloneMoveFileView.as_view(), name="mv-file-rclone"),
     path('rclone/publiclink/', rclone.RclonePublicLinkView.as_view(), name="pub-link-rclone"),
+    path('rclone/generate-conclusion/', rclone.GenerateConclusionView.as_view(), name="generate-conclusion"),
 
     # path('email/<str:name>/messages/list/', views.EMailMessagesListView.as_view(), name='email-messages-list'),
     # path('email/messages/import-files/', views.ImportAttachmentsFromMail.as_view(), name='email-import-files'),

@@ -39,3 +39,7 @@ class PublicLinkRequestSerializer(BaseRemoteRequestSerializer):
 
 class FileUploadSerializer(BaseRemoteRequestSerializer):
     file = serializers.FileField(required=True)
+
+class GenerateConclusionRequestSerializer(serializers.Serializer):
+    task = serializers.UUIDField(required=True)
+    conclusionNumber = serializers.CharField(max_length=255, required=True)
