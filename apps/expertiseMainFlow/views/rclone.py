@@ -9,15 +9,17 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+from ..backup.drive import move_folder
 from ..models import ExpertiseData
 from ..rclone.endpoints import RcloneOperations
 from ..rclone.rclone import Rclone
 from ..serializers.rclone_request_serializers import ListRemoteRequestSerializer, BaseRemoteRequestSerializer, \
     MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer, GenerateConclusionRequestSerializer
 from ..serializers.rclone_response_serializers import ListRemoteResponseSerializer, PublicLinkResponseSerializer
-from ..utils import validate_response
 
-from django.conf import settings
+
+from ...notifications.models import Notification
+from ...tasks.models import Task
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -224,15 +226,32 @@ class GenerateConclusionView(APIView):
         serializer = GenerateConclusionRequestSerializer(data=request.data)
         if serializer.is_valid():
             task_id = serializer.validated_data['task']
+            task = Task.objects.get(pk=task_id)
             conclusion_number = serializer.validated_data['conclusionNumber']
 
             # Find the ExpertiseData entry
             try:
                 expertise_data = ExpertiseData.objects.get(task_id=task_id)
-                expertise_data.conclusionNumber = conclusion_number
-                expertise_data.save()
+                response = ""
 
-                return Response({"message": "Conclusion number updated successfully."}, status=status.HTTP_200_OK)
+                if task.drive_folder_path:
+                    response = move_folder(task.drive_folder_path, f"საბოლოო დასკვნები")
+
+                    if "Folder moved successfully to new parent ID" in response:
+                        task.drive_folder_path = f"საბოლოო დასკვნები/{task.drive_folder_path.split('/')[-1]}"
+                        expertise_data.conclusionNumber = conclusion_number
+                        expertise_data.save()
+                        task.save()
+
+                        self.request.user.notify(
+                            initiator=self.request.user,
+                            title="დასკვნა წარმატებით დაგენერირდა",
+                            message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}, მისამართი:საბოლოო დასკვნები/{task.drive_folder_path.split('/')[-1]}",
+                            level=Notification.Level.INFO
+                        )
+
+
+                return Response({"message": "Conclusion number updated successfully.", "drive_api_response": str(response)}, status=status.HTTP_200_OK)
             except ExpertiseData.DoesNotExist:
                 return Response({"error": "ExpertiseData not found for the given task."}, status=status.HTTP_404_NOT_FOUND)
 

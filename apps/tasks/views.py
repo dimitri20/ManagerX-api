@@ -10,6 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
 from apps.notifications.tasks import send_notification
+from ..expertiseMainFlow.models import ExpertiseData
 from ..notifications.models import Notification
 
 User = get_user_model()
@@ -20,7 +21,10 @@ class TaskCreateView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.validated_data['creator'] = self.request.user
-        serializer.save()
+        saved_task = serializer.save()
+
+        expertise_data = ExpertiseData(task=saved_task)
+        expertise_data.save()
 
         if 'assign_to' in serializer.validated_data:
 

@@ -2,15 +2,13 @@ import logging
 from typing import TypeVar, Optional, Type
 
 import requests
+import configparser
 from requests.auth import HTTPBasicAuth
 from rest_framework import serializers, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from drf_yasg.utils import swagger_auto_schema
 
 from django.conf import settings
 from apps.expertiseMainFlow.rclone.endpoints import RcloneOperations
-from apps.expertiseMainFlow.utils import validate_response
 
 # Configure the logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -157,3 +155,10 @@ class Rclone(RcloneAbstract):
                 {"error": f"Failed to retrieve remote contents: {response.status_code}, {response.text}"},
                 status=response.status_code
             )
+
+    def get_rclone_conf_file_content(self):
+        rclone_conf_path = 'rclone/config/rclone.conf'
+        config = configparser.ConfigParser()
+        config.read(rclone_conf_path)
+
+        return config['GoogleDrive']
