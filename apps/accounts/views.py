@@ -14,7 +14,6 @@ from django.conf import settings
 from .filters import UserListFilter
 from .models import UserAccount
 from .paginations import StandardPagination
-from ..notifications.serializers import NotificationSerializer
 
 User = get_user_model()
 

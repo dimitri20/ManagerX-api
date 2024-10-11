@@ -254,6 +254,13 @@ SWAGGER_SETTINGS = {
 # Media files configuration
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+GDRIVE_UPLOADS_PATH = MEDIA_ROOT / 'mnt/gdrive/gdrive_0'
+
+
+RCLONE_USER = config("RCLONE_USER")
+RCLONE_PASS = config("RCLONE_PASS")
+RCLONE_ADDR = config("RCLONE_ADDR")
+
 
 # Celery Configuration Options
 CELERY_TIMEZONE = "Asia/Tbilisi"

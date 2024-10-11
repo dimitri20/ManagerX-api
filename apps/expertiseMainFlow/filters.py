@@ -13,7 +13,7 @@ class EMailMessagesListFilter(django_filters.FilterSet):
 class FileListFilter(django_filters.FilterSet):
     class Meta:
         model = File
-        fields = ['uuid', 'title', 'folder', 'owner', 'created_at', 'updated_at', ]
+        fields = ['uuid', 'title', 'subtask', 'owner', 'created_at', 'updated_at', ]
 
 
 class FolderListFilter(django_filters.FilterSet):

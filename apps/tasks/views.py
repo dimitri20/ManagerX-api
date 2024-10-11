@@ -2,14 +2,15 @@ from django.contrib.auth import get_user_model
 from rest_framework.generics import UpdateAPIView, DestroyAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
-from apps.tasks.models import Task, SubTask
+from apps.tasks.models import Task, SubTask, Comment
 from apps.tasks.paginations import StandardPagination
 from apps.tasks.serializers import TaskListSerializer, SubtaskListSerializer, TaskCreateSerializer, \
-    SubtaskCreateSerializer
+    SubtaskCreateSerializer, CommentSerializer, CommentCreateSerializer, CommentUpdateSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
 from apps.notifications.tasks import send_notification
+from ..expertiseMainFlow.models import ExpertiseData
 from ..notifications.models import Notification
 
 User = get_user_model()
@@ -20,17 +21,19 @@ class TaskCreateView(CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.validated_data['creator'] = self.request.user
-        serializer.save()
+        saved_task = serializer.save()
 
-        # if 'assign_to' in serializer.validated_data:
-        #
-        #     serializer.validated_data['assign_to'].notify(
-        #         initiator=self.request.user,
-        #         receiver=serializer.validated_data['assign_to'],
-        #         title="Created task",
-        #         message=f"User {self.request.user.username} created for you",
-        #         level=Notification.Level.INFO
-        #     )
+        expertise_data = ExpertiseData(task=saved_task)
+        expertise_data.save()
+
+        if 'assign_to' in serializer.validated_data:
+
+            serializer.validated_data['assign_to'].notify(
+                initiator=self.request.user,
+                title="შეიქმნა პროექტი",
+                message=f"მომხმარებელმა {self.request.user} დაგავალათ პროექტი: {serializer.validated_data['title']}",
+                level=Notification.Level.INFO
+            )
 
 
 class TaskDetailView(RetrieveAPIView):
@@ -68,6 +71,15 @@ class SubtaskCreateView(CreateAPIView):
         serializer.validated_data['creator'] = self.request.user
         serializer.save()
 
+        if 'assign_to' in serializer.validated_data:
+
+            serializer.validated_data['assign_to'].notify(
+                initiator=self.request.user,
+                title="დავალება",
+                message=f"მომხმარებელმა {self.request.user} დაგავალათ დავალება: {serializer.validated_data['title']}",
+                level=Notification.Level.INFO
+            )
+
 
 class SubtaskDetailView(RetrieveAPIView):
     serializer_class = SubtaskListSerializer
@@ -94,3 +106,28 @@ class SubtaskListView(ListAPIView):
     pagination_class = StandardPagination
     ordering_fields = '__all__'
     queryset = SubTask.objects.all()
+
+class SubtaskCommentCreateView(CreateAPIView):
+    serializer_class = CommentCreateSerializer
+    queryset = Comment.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.validated_data['creator'] = self.request.user
+        serializer.save()
+
+        serializer.validated_data['subtask'].creator.notify(
+            initiator=self.request.user,
+            title="დავალება",
+            message=f"მომხმარებელმა {self.request.user} დაამატა კომენტარი დავალებაზე: {serializer.validated_data['subtask'].title}",
+            level=Notification.Level.INFO
+        )
+
+class SubtaskCommentDeleteView(DestroyAPIView):
+    serializer_class = CommentCreateSerializer
+    queryset = Comment.objects.all()
+    lookup_field = 'uuid'
+
+class SubtaskCommentUpdateView(UpdateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentUpdateSerializer
+    lookup_field = 'uuid'

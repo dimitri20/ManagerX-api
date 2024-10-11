@@ -24,7 +24,7 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
             if profile.profile_image:
                 profile_image_url = profile.profile_image.url
                 # Use request to construct the full URL
-                return request.build_absolute_uri(profile_image_url)
+                return request.build_absolute_uri(profile_image_url) if request else None
         except UserProfile.DoesNotExist:
             return None  # Return None if profile or profile image does not exist
         return None
