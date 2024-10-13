@@ -1,8 +1,12 @@
 from datetime import timedelta
 from email.policy import default
 from pathlib import Path
-from decouple import config
 import os
+
+import os
+
+from pathlib import Path
+from . import is_true, split_with_comma
 
 import dj_database_url
 from kombu import Queue, Exchange
@@ -10,18 +14,40 @@ from kombu import Queue, Exchange
 # Base directory of the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+INSECURE_KEY = "django-insecure-0eikswwglid=ukts4l2_b=676m!-q_%154%2z@&l3)n6)cp3#c"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", INSECURE_KEY)
 
-# Debug mode should be False in production
-DEBUG = config('DEBUG', default=False, cast=bool)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = is_true(os.getenv("DJANGO_DEBUG", "true"))
+
+CORS_ALLOWED_ORIGINS = split_with_comma(
+    os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:8080")
+)
+CORS_ALLOW_CREDENTIALS = is_true(os.getenv("CORS_ALLOW_CREDENTIALS", 'true'))
+CORS_ALLOW_METHODS = split_with_comma(os.getenv("CORS_ALLOW_METHODS"))
+CORS_ALLOW_HEADERS = split_with_comma(os.getenv("CORS_ALLOW_HEADERS"))
 
 # Hosts/domain names that are valid for this site
-ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = split_with_comma(
+    os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")
+)
+
+INTERNAL_IPS = ["127.0.0.1"]
+
+if DEBUG:
+    # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#configure-internal-ips
+    import socket
+
+    try:
+        hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+        INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
+    except socket.gaierror:
+        INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
+
 
 # CORS configuration
-CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
-CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bool)
+# CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+# CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bool)
 
 # Application definition
 DJANGO_DEFAULT_APPS = [
@@ -117,22 +143,34 @@ CHANNEL_LAYERS = {
 }
 
 # Database configuration
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=f"postgresql://{config('DB_USER')}:{config('DB_PASS')}@{config('DB_SERVICE_NAME')}:{config('DB_PORT')}/{config('DB_DATABASE')}",
+#         conn_max_age=600  # Connection persistence
+#     )
+# }
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"postgresql://{config('DB_USER')}:{config('DB_PASS')}@{config('DB_SERVICE_NAME')}:{config('DB_PORT')}/{config('DB_DATABASE')}",
-        conn_max_age=600  # Connection persistence
-    )
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": Path(os.getenv("DJANGO_SQLITE_DIR", "")) / "db.sqlite3",
+    }
 }
+
+# If POSTGRES_DB is truthy, use PostgreSQL. https://docs.python.org/3/library/stdtypes.html#truth-value-testing
+if bool(os.getenv("POSTGRES_DB")):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["POSTGRES_DB"],
+        "USER": os.environ["POSTGRES_USER"],
+        "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+        "HOST": os.environ["POSTGRES_HOST"],
+        "PORT": os.environ["POSTGRES_PORT"],
+    }
+
 
 # Email configuration (default is console backend)
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-# Uncomment and configure the following lines to use an SMTP backend
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'your_email@example.com'
-# EMAIL_HOST_PASSWORD = 'your_password'
-# EMAIL_USE_TLS = True
 
 # Custom auth user model
 AUTH_USER_MODEL = 'accounts.UserAccount'
@@ -160,20 +198,54 @@ FILE_UPLOAD_HANDLERS = [
 ]
 
 # Internationalization and localization settings
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = os.getenv("DJANGO_LANGUAGE_CODE", "en-us")
+TIME_ZONE = os.getenv("DJANGO_TIME_ZONE", "UTC")
 USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'build/static')
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = os.getenv("DJANGO_STATIC_ROOT")
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Sessions
+SESSION_COOKIE_SECURE = is_true(os.getenv("DJANGO_SESSION_COOKIE_SECURE"))
+
+# Settings for CSRF cookie.
+CSRF_COOKIE_SECURE = is_true(os.getenv("DJANGO_CSRF_COOKIE_SECURE"))
+CSRF_TRUSTED_ORIGINS = split_with_comma(os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", ""))
+
+# Security Middleware (manage.py check --deploy)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7 * 2  # 2 weeks, default - 0
+SECURE_SSL_REDIRECT = is_true(os.getenv("DJANGO_SECURE_SSL_REDIRECT"))
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Email settings
+EMAIL_HOST = os.getenv("DJANGO_EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("DJANGO_EMAIL_PORT", 25))
+EMAIL_HOST_USER = os.getenv("DJANGO_EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("DJANGO_EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = is_true(os.getenv("DJANGO_EMAIL_USE_TLS"))
+
+# Email address that error messages come from.
+SERVER_EMAIL = os.getenv("DJANGO_SERVER_EMAIL", "root@localhost")
+
+# Default email address to use for various automated correspondence from the site managers.
+DEFAULT_FROM_EMAIL = os.getenv("DJANGO_DEFAULT_FROM_EMAIL", "webmaster@localhost")
+
+# People who get code error notifications. In the format
+# [('Full Name', 'email@example.com'), ('Full Name', 'anotheremail@example.com')]
+ADMIN_NAME = os.getenv("DJANGO_ADMIN_NAME", "")
+ADMIN_EMAIL = os.getenv("DJANGO_ADMIN_EMAIL")
+if ADMIN_EMAIL:
+    ADMINS = [(ADMIN_NAME, ADMIN_EMAIL)]
+
+
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {
@@ -215,9 +287,9 @@ SIMPLE_JWT = {
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
-GOOGLE_REDIRECT_URL = config('GOOGLE_REDIRECT_URL', default='')
-GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
-GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+GOOGLE_REDIRECT_URL = os.getenv('GOOGLE_REDIRECT_URL', default='')
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', default='')
 SOCIALACCOUNT_STORE_TOKENS = True
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -251,16 +323,20 @@ SWAGGER_SETTINGS = {
     },
 }
 
-# Media files configuration
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
-GDRIVE_UPLOADS_PATH = MEDIA_ROOT / 'mnt/gdrive/gdrive_0'
+# Absolute filesystem path to the directory that will hold user-uploaded files.
+# Example: "/var/www/example.com/media/"
+MEDIA_ROOT = os.getenv("DJANGO_MEDIA_ROOT", "")
+
+# URL that handles the media served from MEDIA_ROOT.
+# Examples: "http://example.com/media/", "http://media.example.com/"
+MEDIA_URL = os.getenv("DJANGO_MEDIA_URL", "media/")
+
+GDRIVE_UPLOADS_PATH = f'{MEDIA_ROOT}/mnt/gdrive/gdrive_0'
 
 
-RCLONE_USER = config("RCLONE_USER")
-RCLONE_PASS = config("RCLONE_PASS")
-RCLONE_ADDR = config("RCLONE_ADDR")
-
+RCLONE_USER = os.getenv("RCLONE_USER")
+RCLONE_PASS = os.getenv("RCLONE_PASS")
+RCLONE_ADDR = os.getenv("RCLONE_ADDR")
 
 # Celery Configuration Options
 CELERY_TIMEZONE = "Asia/Tbilisi"
@@ -269,26 +345,37 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 
 CELERY_BROKER_URL = 'amqp://guest:guest@rabbit:5672/'  # RabbitMQ broker URL
 
-# Logging configuration
+# Log settings
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            # https://docs.python.org/3/library/logging.html#logrecord-attributes
+            "format": "{levelname} [{asctime}] -- {message}",
+            "style": "{",
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
+        "mail_admins": {
+            "level": "ERROR",
+            "class": "django.utils.log.AdminEmailHandler",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
         },
-        'ManagerX-api': {
-            'handlers': ['console'],
-            'level': 'INFO',
+        "django.request": {
+            "handlers": ["mail_admins", "console"] if not DEBUG else ["console"],
+            "level": "ERROR",
+            "propagate": False,
         },
     },
 }
-
-# Example OAuth URL (for reference)
-# https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=http://localhost:8000/accounts/google/login/callback/&prompt=consent&response_type=code&client_id=replace_me_client_id&scope=openid%20email%20profile&access_type=offline

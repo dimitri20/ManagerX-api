@@ -86,7 +86,6 @@ pycparser==2.22
 PyJWT==2.8.0
 pyOpenSSL==24.2.1
 pyparsing==3.1.2
-pytest==8.2.2
 pytest-django==4.8.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
@@ -120,3 +119,8 @@ vine==5.1.0
 wcwidth==0.2.13
 whitenoise==6.7.0
 zope.interface==7.0.1
+coverage==7.4.0
+gunicorn==22.0.0
+psycopg2-binary==2.9.9
+wait-for-it==2.2.2
+

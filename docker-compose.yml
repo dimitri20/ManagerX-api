@@ -1,0 +1,168 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+
+  django:
+    build: .
+    image: django-docker
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - "staticfiles-data:/var/www/static"
+      - "media-data:/var/www/media"
+    depends_on:
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.development.rule=Host(`127.0.0.1`) || Host(`localhost`)"
+      - "traefik.http.routers.development.entrypoints=web"
+      - "traefik.http.routers.development.priority=1"
+
+  nginx:
+    image: nginx:1.23-alpine
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: media-data
+        target: /usr/share/nginx/html/media
+        read_only: true
+        volume:
+          nocopy: true
+      - type: volume
+        source: staticfiles-data
+        target: /usr/share/nginx/html/static
+        read_only: true
+        volume:
+          nocopy: true
+    depends_on:
+      - django
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.staticfiles.rule=PathPrefix(`/static/`) || PathPrefix(`/media/`)"
+      - "traefik.http.routers.staticfiles.entrypoints=web"
+      - "traefik.http.routers.staticfiles.priority=2"
+
+  reverse-proxy:
+    image: traefik:v2.9
+    env_file: .env
+    restart: unless-stopped
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le-resolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.le-resolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.le-resolver.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.le-resolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      #- "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    volumes:
+      - ./rclone/config:/config/rclone
+      - ./rclone/logs:/logs
+      - ./rclone/cache:/root/.cache/rclone # This is for the WebUI, not VFS
+      - /Users/guluadim/mnt:/hostfs:shared
+      - /var/cache/rclone:/vfsCache
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    command:
+      - rcd
+      - --rc-web-gui
+      - --rc-web-gui-no-open-browser
+      - --rc-addr=:5572
+      - --rc-user=admin
+      - --rc-pass=admin
+      - --log-file=/logs/rclone.log
+      - --log-level=NOTICE
+      - --cache-dir=/vfsCache
+    ports:
+      - 5572:5572
+    environment:
+      - TZ=America/New_York
+    restart: unless-stopped
+
+  rclone_initializer:
+    build:
+      context: ./rclone
+    container_name: rclone_initializer
+    environment:
+      - RCLONE_USERNAME=admin
+      - RCLONE_PASSWORD=admin
+      - RCLONE_PORT=5572
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./rclone/mounts.json:/app/mounts.json
+    restart: unless-stopped
+    depends_on:
+      - rclone
+
+  # Redis - result backend
+  redis:
+    image: redis:latest
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # here, we can access rabbitmq management plugin
+
+  celery:
+    container_name: worker
+    build:
+      context: .
+    command: celery -A managerx worker -l INFO
+    volumes:
+      - .:/usr/src/app/
+      - ~/Documents/credentials/:/usr/src/credentials/
+#      - /Users/guluadim/mnt:/usr/src/app/media/mnt
+    env_file: ".env"
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+    depends_on:
+      - redis
+      - rabbit
+      - api
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - portainer_data:/portainer_data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  staticfiles-data:
+  media-data:
+  portainer_data:
