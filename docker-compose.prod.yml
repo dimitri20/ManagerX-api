@@ -1,48 +1,59 @@
-version: "3.9"
 services:
+  postgres:
+    image: postgres:15
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+    networks:
+      - app_network
 
   api:
     build: .
     image: django-docker
     env_file: .env
-    environment:
-      - "DJANGO_DEBUG=true"
     restart: unless-stopped
-    command: ["/docker-cmd.sh", "--debug"]
     volumes:
-      - "media-data:/var/www/media"
-      - "./api:/usr/src/api"  # mount the source code for watching changes
-    ports:
-      - "8000:8000"
+      - static_volume:/var/www/static
+      - media_volume:/var/www/media
+    expose:
+      - 80
+    depends_on:
+      - postgres
+    networks:
+      - app_network
 
   celery:
     container_name: worker
     build: .
     image: django-docker
     env_file: .env
-    command: celery -A ManagerX-api worker -l DEBUG
-    volumes:
-      - "./api:/usr/src/api"
+    command: celery -A ManagerX-api worker -l INFO
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
     depends_on:
       - redis
       - rabbit
       - api
+    networks:
+      - app_network
 
-  # Redis - result backend
   redis:
     image: redis:latest
     hostname: redis
-    ports:
-      - "6379:6379"
+    expose:
+      - 6379
+    networks:
+      - app_network
 
   rabbit:
     hostname: rabbit
     image: rabbitmq:latest
-    ports:
-      - "5672:5672"
-      - "15672:15672"  # here, we can access rabbitmq management plugin
+    expose:
+      - 5672
+      - 15672
+    networks:
+      - app_network
 
   rclone:
     image: rclone/rclone:latest
@@ -72,11 +83,13 @@ services:
       - --log-file=/logs/rclone.log
       - --log-level=NOTICE
       - --cache-dir=/vfsCache
-    ports:
-      - 5572:5572
+    expose:
+      - 5572
     environment:
       - TZ=America/New_York
     restart: unless-stopped
+    networks:
+      - app_network
 
   rclone_initializer:
     build:
@@ -93,16 +106,28 @@ services:
     restart: unless-stopped
     depends_on:
       - rclone
+    networks:
+      - app_network
 
-  portainer:
-    image: portainer/portainer-ce:latest
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
     ports:
-      - 9443:9443
+      - "8000:80"
     volumes:
-      - portainer_data:/portainer_data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+      - static_volume:/var/www/static
+      - media_volume:/var/www/media
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - app_network
 
 volumes:
-  media-data:
+  postgres-data:
+  media_volume:
+  static_volume:
   portainer_data:
+
+networks:
+  app_network:
+    driver: bridge
