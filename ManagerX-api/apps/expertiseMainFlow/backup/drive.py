@@ -59,7 +59,7 @@ def move_folder(src_folder_path, dst_folder_path):
     try:
 
         # Path to the rclone.conf file
-        rclone_conf_path = 'rclone/config/rclone.conf'
+        rclone_conf_path = '/rclone/config/rclone.conf'
 
         # Parse rclone.conf to get the token
         drive_data = parse_rclone_conf(rclone_conf_path)

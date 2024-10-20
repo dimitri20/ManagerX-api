@@ -16,6 +16,7 @@ services:
     volumes:
       - static_volume:/var/www/static
       - media_volume:/var/www/media
+      - ./rclone/config:/rclone/config
     expose:
       - 80
     depends_on:
@@ -43,17 +44,14 @@ services:
     hostname: redis
     expose:
       - 6379
-    networks:
-      - app_network
 
   rabbit:
     hostname: rabbit
     image: rabbitmq:latest
     expose:
-      - 5672
       - 15672
-    networks:
-      - app_network
+      - 5672
+
 
   rclone:
     image: rclone/rclone:latest
@@ -77,9 +75,9 @@ services:
       - rcd
       - --rc-web-gui
       - --rc-web-gui-no-open-browser
-      - --rc-addr=:5572
-      - --rc-user=admin
-      - --rc-pass=admin
+      - --rc-addr=:$RCLONE_PORT
+      - --rc-user=$RCLONE_USERNAME
+      - --rc-pass=$RCLONE_PASSWORD
       - --log-file=/logs/rclone.log
       - --log-level=NOTICE
       - --cache-dir=/vfsCache
@@ -88,26 +86,18 @@ services:
     environment:
       - TZ=America/New_York
     restart: unless-stopped
-    networks:
-      - app_network
 
   rclone_initializer:
     build:
       context: ./rclone
     container_name: rclone_initializer
-    environment:
-      - RCLONE_USERNAME=admin
-      - RCLONE_PASSWORD=admin
-      - RCLONE_PORT=5572
-      - PUID=1000
-      - PGID=1000
+    env_file:
+      - .env
     volumes:
       - ./rclone/mounts.json:/app/mounts.json
     restart: unless-stopped
     depends_on:
       - rclone
-    networks:
-      - app_network
 
   nginx:
     build:

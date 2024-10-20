@@ -26,7 +26,6 @@ class ExpertiseFolder(models.Model):
     case = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=255, choices=Status.choices, null=False, blank=False)
     path = models.CharField(max_length=255, null=True, blank=True)
-    tags = models.ManyToManyField(Tag, related_name="folder_tags", blank=True)
     comment = models.CharField(max_length=10000, null=True, blank=True)
     owner = models.ForeignKey(User, related_name="expertise_folders", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
