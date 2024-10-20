@@ -43,3 +43,7 @@ class FileUploadSerializer(BaseRemoteRequestSerializer):
 class GenerateConclusionRequestSerializer(serializers.Serializer):
     task = serializers.UUIDField(required=True)
     conclusionNumber = serializers.CharField(max_length=255, required=True)
+
+class ShareFolderRequestSerializer(serializers.Serializer):
+    folder_path = serializers.CharField(max_length=255, required=True)
+    user_id = serializers.UUIDField(required=True)

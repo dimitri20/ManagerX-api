@@ -18,4 +18,5 @@ urlpatterns = [
     path('rclone/movefile/', rclone.RcloneMoveFileView.as_view(), name="mv-file-rclone"),
     path('rclone/publiclink/', rclone.RclonePublicLinkView.as_view(), name="pub-link-rclone"),
     path('rclone/generate-conclusion/', rclone.GenerateConclusionView.as_view(), name="generate-conclusion"),
+    path('rclone/share-folder/', rclone.ShareFolderWithUserView.as_view(), name="share-folder"),
 ]
