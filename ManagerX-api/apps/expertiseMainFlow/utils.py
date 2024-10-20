@@ -1,16 +1,10 @@
 import logging
 
-from django.conf import settings
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import QueryDict
-from rest_framework import serializers
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# def get_upload_to(instance, filename):
-#     return f"{instance.owner.id}/uploads/{instance.folder.uuid}/{instance.uuid}_{filename.replace(' ', '_')}"
 
 
 def get_upload_to(instance, filename):

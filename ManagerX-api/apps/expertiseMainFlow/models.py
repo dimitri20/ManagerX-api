@@ -11,12 +11,6 @@ from apps.tasks.models import Task, SubTask
 
 User = get_user_model()
 
-class Tag(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
-    name = models.CharField(max_length=255, null=False, blank=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
 class ExpertiseFolder(models.Model):
     class Status(models.TextChoices):
         TODO = 'TODO', 'To Do'
