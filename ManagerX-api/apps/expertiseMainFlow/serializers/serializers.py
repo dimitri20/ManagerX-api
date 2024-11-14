@@ -32,6 +32,10 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         model = CustomField
         fields = ['id', 'name', 'data_type']
 
+class UpdateCustomFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomField
+        fields = ['name']
 
 class KeyValuePairSerializer(serializers.Serializer):
     field = serializers.PrimaryKeyRelatedField(queryset=CustomField.objects.all())

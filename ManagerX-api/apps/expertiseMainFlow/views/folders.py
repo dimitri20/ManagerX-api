@@ -11,7 +11,8 @@ from apps.expertiseMainFlow.models import ExpertiseFolder, CustomField, Expertis
 from apps.expertiseMainFlow.paginations import StandardPagination
 from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSerializer, \
     ExpertiseFolderDetailsSerializer, \
-    CustomFieldSerializer, FolderDataCreateSerializer, ExpertiseDataSerializer, ExpertiseDataCreateSerializer
+    CustomFieldSerializer, FolderDataCreateSerializer, ExpertiseDataSerializer, ExpertiseDataCreateSerializer, \
+    UpdateCustomFieldSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
@@ -26,6 +27,9 @@ class CustomFieldViewSet(CreateAPIView):
     serializer_class = CustomFieldSerializer
     queryset = CustomField.objects.all()
 
+class UpdateCustomFieldViewSet(UpdateAPIView):
+    serializer_class = UpdateCustomFieldSerializer
+    queryset = CustomField.objects.all()
 
 class CustomFieldListViewSet(ListAPIView):
     serializer_class = CustomFieldSerializer

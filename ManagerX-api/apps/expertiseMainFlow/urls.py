@@ -3,6 +3,7 @@ from .views import files, folders, rclone
 
 urlpatterns = [
     path('data/custom-fields/', folders.CustomFieldViewSet.as_view(), name='custom-fields'),
+    path('data/custom-fields/update/', folders.UpdateCustomFieldViewSet.as_view(), name='custom-fields-update'),
     path('data/create/', folders.CreateExpertiseDataView.as_view(), name='data'),
     path('data/create-expertise-data/', folders.FolderDataViewSet.as_view(), name='folder-data'),
     path('data/custom-fields/list/', folders.CustomFieldListViewSet.as_view(), name='custom-fields-list'),
