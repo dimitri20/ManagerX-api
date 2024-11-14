@@ -66,3 +66,12 @@ class Comment(models.Model):
 
     def children(self):
         return Comment.objects.filter(parent=self)
+
+
+class Note(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, primary_key=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    content = models.JSONField(max_length=100000, null=True, blank=True)
+    owner = models.ForeignKey(User, related_name='note_owner', on_delete=models.CASCADE, null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

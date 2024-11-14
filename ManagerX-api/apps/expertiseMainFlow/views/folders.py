@@ -30,6 +30,7 @@ class CustomFieldViewSet(CreateAPIView):
 class UpdateCustomFieldViewSet(UpdateAPIView):
     serializer_class = UpdateCustomFieldSerializer
     queryset = CustomField.objects.all()
+    lookup_field = 'id'
 
 class CustomFieldListViewSet(ListAPIView):
     serializer_class = CustomFieldSerializer

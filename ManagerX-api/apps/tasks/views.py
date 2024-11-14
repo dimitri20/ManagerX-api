@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
-from rest_framework.generics import UpdateAPIView, DestroyAPIView
+from rest_framework.generics import UpdateAPIView, DestroyAPIView, GenericAPIView
 
 from apps.tasks.filters import TaskListFilter, SubtaskListFilter
-from apps.tasks.models import Task, SubTask, Comment
+from apps.tasks.models import Task, SubTask, Comment, Note
 from apps.tasks.paginations import StandardPagination
 from apps.tasks.serializers import TaskListSerializer, SubtaskListSerializer, TaskCreateSerializer, \
-    SubtaskCreateSerializer, CommentSerializer, CommentCreateSerializer, CommentUpdateSerializer
+    SubtaskCreateSerializer, CommentSerializer, CommentCreateSerializer, CommentUpdateSerializer, NoteSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
@@ -130,4 +130,23 @@ class SubtaskCommentDeleteView(DestroyAPIView):
 class SubtaskCommentUpdateView(UpdateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentUpdateSerializer
+    lookup_field = 'uuid'
+
+class NoteListView(GenericAPIView):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
+    lookup_field = 'uuid'
+
+class NoteCreateView(CreateAPIView):
+    serializer_class = NoteSerializer
+    queryset = Note.objects.all()
+
+class NoteDetailView(RetrieveAPIView):
+    serializer_class = NoteSerializer
+    queryset = Note.objects.all()
+    lookup_field = 'uuid'
+
+class NoteUpdateView(UpdateAPIView):
+    serializer_class = NoteSerializer
+    queryset = Note.objects.all()
     lookup_field = 'uuid'
