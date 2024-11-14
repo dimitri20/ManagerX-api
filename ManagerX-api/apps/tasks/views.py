@@ -132,7 +132,7 @@ class SubtaskCommentUpdateView(UpdateAPIView):
     serializer_class = CommentUpdateSerializer
     lookup_field = 'uuid'
 
-class NoteListView(GenericAPIView):
+class NoteListView(ListAPIView):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     lookup_field = 'uuid'
