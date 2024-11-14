@@ -306,6 +306,8 @@ class ShareFolderWithUserView(APIView):
                         level=Notification.Level.INFO
                     )
 
+                    return Response({"response": response}, status=status.HTTP_400_BAD_REQUEST)
+
                 return Response({"response": response}, status=status.HTTP_200_OK)
             except Exception as e:
                 self.request.user.notify(
