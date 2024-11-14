@@ -1,9 +1,7 @@
-from djoser.serializers import UserCreateSerializer
 from django.contrib.auth import get_user_model
 
 
 from dj_rest_auth.serializers import UserDetailsSerializer
-from dj_rest_auth.serializers import LoginSerializer
 from rest_framework import serializers
 
 from apps.accounts.models import UserProfile

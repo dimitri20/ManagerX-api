@@ -43,31 +43,10 @@ class UploadFileView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UpdateFileView(UpdateAPIView):
-    queryset = File.objects.all()
-    serializer_class = FileSerializer
-    lookup_field = 'uuid'
-
-
-class FileDetailsView(RetrieveAPIView):
-    serializer_class = FileSerializer
-    queryset = File.objects.all()
-    lookup_field = 'uuid'
-
-
 class DeleteFileView(DestroyAPIView):
     serializer_class = FileSerializer
     queryset = File.objects.all()
     lookup_field = 'uuid'
-
-
-class ListFileView(ListAPIView):
-    serializer_class = FileSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = FileListFilter
-    pagination_class = StandardPagination
-    ordering_fields = '__all__'
-    queryset = File.objects.all()
 
 
 class DownloadFileView(GenericAPIView):

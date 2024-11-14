@@ -7,16 +7,17 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, serializers
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
-from ..backup.drive import move_folder
+from ..backup.drive import move_folder, rename_folder, share_folder_or_file_with_user
 from ..models import ExpertiseData
 from ..rclone.endpoints import RcloneOperations
 from ..rclone.rclone import Rclone
 from ..serializers.rclone_request_serializers import ListRemoteRequestSerializer, BaseRemoteRequestSerializer, \
-    MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer, GenerateConclusionRequestSerializer
+    MoveFileRequestSerializer, PublicLinkRequestSerializer, FileUploadSerializer, GenerateConclusionRequestSerializer, \
+    ShareFolderRequestSerializer
 from ..serializers.rclone_response_serializers import ListRemoteResponseSerializer, PublicLinkResponseSerializer
-
+from ...accounts.models import UserAccount
 
 from ...notifications.models import Notification
 from ...tasks.models import Task
@@ -226,19 +227,21 @@ class GenerateConclusionView(APIView):
         serializer = GenerateConclusionRequestSerializer(data=request.data)
         if serializer.is_valid():
             task_id = serializer.validated_data['task']
-            task = Task.objects.get(pk=task_id)
             conclusion_number = serializer.validated_data['conclusionNumber']
 
             # Find the ExpertiseData entry
             try:
+                task = Task.objects.get(pk=task_id)
                 expertise_data = ExpertiseData.objects.get(task_id=task_id)
                 response = ""
+                response_rename_folder = ""
 
                 if task.drive_folder_path:
                     response = move_folder(task.drive_folder_path, f"საბოლოო დასკვნები")
 
                     if "Folder moved successfully to new parent ID" in response:
-                        task.drive_folder_path = f"საბოლოო დასკვნები/{task.drive_folder_path.split('/')[-1]}"
+                        task.drive_folder_path = f"საბოლოო დასკვნები/{conclusion_number}"
+                        response_rename_folder = rename_folder(task.drive_folder_path, f"{conclusion_number}")
                         expertise_data.conclusionNumber = conclusion_number
                         expertise_data.save()
                         task.save()
@@ -246,13 +249,73 @@ class GenerateConclusionView(APIView):
                         self.request.user.notify(
                             initiator=self.request.user,
                             title="დასკვნა წარმატებით დაგენერირდა",
-                            message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}, მისამართი:საბოლოო დასკვნები/{task.drive_folder_path.split('/')[-1]}",
+                            message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}, მისამართი: {task.drive_folder_path}",
+                            level=Notification.Level.INFO
+                        )
+
+                    else:
+                        self.request.user.notify(
+                            initiator=self.request.user,
+                            title="დასკვნა ვერ დაგენერირდა",
+                            message=f"დასკვნა ვერ დაგენერირდა, {response}, {response_rename_folder}",
                             level=Notification.Level.INFO
                         )
 
 
-                return Response({"message": "Conclusion number updated successfully.", "drive_api_response": str(response)}, status=status.HTTP_200_OK)
-            except ExpertiseData.DoesNotExist:
-                return Response({"error": "ExpertiseData not found for the given task."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"drive_api_response": str(response), "rename_folder_response": response_rename_folder}, status=status.HTTP_200_OK)
+            except Exception as e:
+
+                self.request.user.notify(
+                    initiator=self.request.user,
+                    title="დასკვნა ვერ დაგენერირდა",
+                    message=f"დასკვნა ვერ დაგენერირდა: {e}",
+                    level=Notification.Level.INFO
+                )
+                return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ShareFolderWithUserView(APIView):
+
+    @swagger_auto_schema(request_body=ShareFolderRequestSerializer)
+    def post(self, request):
+        serializer = ShareFolderRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            user_id = serializer.validated_data['user_id']
+            folder_path = serializer.validated_data['folder_path']
+
+            try:
+                user = UserAccount.objects.get(pk=user_id)
+                user_email = user.email
+
+                response = share_folder_or_file_with_user(folder_path, user_email)
+
+                if "Folder or file successfully shared with" in response:
+                    self.request.user.notify(
+                        initiator=self.request.user,
+                        title="სამუშაო ფოლდერი წარმატებით გაუზიარდა მომხმარებელს.",
+                        message=f"ფოლდერი: {folder_path}",
+                        level=Notification.Level.INFO
+                    )
+                else:
+                    self.request.user.notify(
+                        initiator=self.request.user,
+                        title="სამუშაო ფოლდერი ვერ გაუზიარდა მომხმარებელს.",
+                        message=f"ფოლდერი: {folder_path}",
+                        level=Notification.Level.INFO
+                    )
+
+                    return Response({"response": response}, status=status.HTTP_400_BAD_REQUEST)
+
+                return Response({"response": response}, status=status.HTTP_200_OK)
+            except Exception as e:
+                self.request.user.notify(
+                    initiator=self.request.user,
+                    title="სამუშაო ფოლდერი ვერ გაუზიარდა მომხმარებელს.",
+                    message=f"ფოლდერი: {folder_path}",
+                    level=Notification.Level.INFO
+                )
+                return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

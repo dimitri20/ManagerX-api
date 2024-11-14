@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:15
@@ -17,7 +16,8 @@ services:
     command: ["/docker-cmd.sh", "--debug"]
     volumes:
       - "media-data:/var/www/media"
-      - "./ManagerX-api:/usr/src/api"  # mount the source code for watching changes
+      - "./ManagerX-api:/usr/src/ManagerX-api"  # mount the source code for watching changes
+      - ./rclone/config:/rclone/config
     ports:
       - "8000:8000"
 
@@ -28,7 +28,7 @@ services:
     env_file: .env
     command: celery -A ManagerX-api worker -l DEBUG
     volumes:
-      - "./ManagerX-api:/usr/src/api"
+      - "./ManagerX-api:/usr/src/ManagerX-api"
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
     depends_on:
@@ -40,15 +40,16 @@ services:
   redis:
     image: redis:latest
     hostname: redis
-    ports:
-      - "6379:6379"
+    expose:
+      - 6379
 
   rabbit:
     hostname: rabbit
     image: rabbitmq:latest
-    ports:
-      - "5672:5672"
-      - "15672:15672"  # here, we can access rabbitmq management plugin
+    expose:
+      - 15672
+      - 5672
+
 
   rclone:
     image: rclone/rclone:latest
@@ -72,28 +73,24 @@ services:
       - rcd
       - --rc-web-gui
       - --rc-web-gui-no-open-browser
-      - --rc-addr=:5572
-      - --rc-user=admin
-      - --rc-pass=admin
+      - --rc-addr=:$RCLONE_PORT
+      - --rc-user=$RCLONE_USERNAME
+      - --rc-pass=$RCLONE_PASSWORD
       - --log-file=/logs/rclone.log
       - --log-level=NOTICE
       - --cache-dir=/vfsCache
-    ports:
-      - 5572:5572
-    environment:
-      - TZ=America/New_York
+    expose:
+      - 5572
+    env_file:
+      - .env
     restart: unless-stopped
 
   rclone_initializer:
     build:
       context: ./rclone
     container_name: rclone_initializer
-    environment:
-      - RCLONE_USERNAME=admin
-      - RCLONE_PASSWORD=admin
-      - RCLONE_PORT=5572
-      - PUID=1000
-      - PGID=1000
+    env_file:
+      - .env
     volumes:
       - ./rclone/mounts.json:/app/mounts.json
     restart: unless-stopped

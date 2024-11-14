@@ -12,9 +12,10 @@ if [ "$1" = "--debug" ]; then
   exec su-exec "$USER" python manage.py runserver "0.0.0.0:$DJANGO_DEV_SERVER_PORT"
 else
   # Gunicorn
-  exec su-exec "$USER" gunicorn "$PROJECT_NAME.wsgi:application" \
+  exec su-exec "$USER" gunicorn "$PROJECT_NAME.asgi:application" \
     --bind "0.0.0.0:$GUNICORN_PORT" \
     --workers "$GUNICORN_WORKERS" \
     --timeout "$GUNICORN_TIMEOUT" \
-    --log-level "$GUNICORN_LOG_LEVEL"
+    --log-level "$GUNICORN_LOG_LEVEL" \
+    -k uvicorn.workers.UvicornWorker
 fi
