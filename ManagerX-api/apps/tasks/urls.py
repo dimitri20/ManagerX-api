@@ -17,4 +17,10 @@ urlpatterns = [
     path('subtasks/comments/create/', views.SubtaskCommentCreateView.as_view(), name='create-subtask-comment'),
     path('subtasks/comments/<uuid:uuid>/edit/', views.SubtaskCommentUpdateView.as_view(), name='update-subtask-comment'),
     path('subtasks/comments/<uuid:uuid>/delete/', views.SubtaskCommentDeleteView.as_view(), name='delete-subtask-comment'),
+
+    path('notes/list/', views.NoteListView.as_view(), name='note-list'),
+    path('notes/create/', views.NoteCreateView.as_view(), name='note-create'),
+    path('notes/<uuid:uuid>/', views.NoteDetailView.as_view(), name='note-detail'),
+    path('notes/<uuid:uuid>/update/', views.NoteUpdateView.as_view(), name='note-update'),
+    path('notes/<uuid:uuid>/delete', views.NoteDetailView.as_view(), name='note-detail'),
 ]

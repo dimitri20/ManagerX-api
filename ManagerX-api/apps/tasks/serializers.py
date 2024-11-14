@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.serializers import CustomUserDetailsSerializer
 from apps.expertiseMainFlow.serializers.serializers import ExpertiseFolderSimpleSerializer, FileSerializer
-from apps.tasks.models import Task, SubTask, Comment
+from apps.tasks.models import Task, SubTask, Comment, Note
 from django.utils import timezone
 
 class CommentCreateSerializer(serializers.ModelSerializer):
@@ -83,3 +83,8 @@ class TaskListSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('uuid', 'creator', 'sent_to_customer', 'created_at', 'updated_at')
         depth = 1
+
+class NoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = '__all__'
