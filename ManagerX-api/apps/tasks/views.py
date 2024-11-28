@@ -150,3 +150,8 @@ class NoteUpdateView(UpdateAPIView):
     serializer_class = NoteSerializer
     queryset = Note.objects.all()
     lookup_field = 'uuid'
+
+class NoteDeleteView(DestroyAPIView):
+    serializer_class = NoteSerializer
+    queryset = Note.objects.all()
+    lookup_field = 'uuid'
