@@ -236,33 +236,44 @@ class GenerateConclusionView(APIView):
                 response = ""
                 response_rename_folder = ""
 
-                if task.drive_folder_path:
-                    response = move_folder(task.drive_folder_path, f"საბოლოო დასკვნები")
+                expertise_data.conclusionNumber = conclusion_number
+                expertise_data.save()
 
-                    if "Folder moved successfully to new parent ID" in response:
-                        task.drive_folder_path = f"საბოლოო დასკვნები/{conclusion_number}"
-                        response_rename_folder = rename_folder(task.drive_folder_path, f"{conclusion_number}")
-                        expertise_data.conclusionNumber = conclusion_number
-                        expertise_data.save()
-                        task.save()
+                self.request.user.notify(
+                    initiator=self.request.user,
+                    title="დასკვნა წარმატებით დაგენერირდა",
+                    message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}",
+                    level=Notification.Level.INFO
+                )
 
-                        self.request.user.notify(
-                            initiator=self.request.user,
-                            title="დასკვნა წარმატებით დაგენერირდა",
-                            message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}, მისამართი: {task.drive_folder_path}",
-                            level=Notification.Level.INFO
-                        )
+                # if task.drive_folder_path:
+                #     response = move_folder(task.drive_folder_path, f"საბოლოო დასკვნები")
+                #
+                #     if "Folder moved successfully to new parent ID" in response:
+                #         task.drive_folder_path = f"საბოლოო დასკვნები/{conclusion_number}"
+                #         response_rename_folder = rename_folder(task.drive_folder_path, f"{conclusion_number}")
+                #         expertise_data.conclusionNumber = conclusion_number
+                #         expertise_data.save()
+                #         task.save()
+                #
+                #         self.request.user.notify(
+                #             initiator=self.request.user,
+                #             title="დასკვნა წარმატებით დაგენერირდა",
+                #             message=f"დასკვნა წარმატებით დაგენერირდა. დასკვნის ნომერი: {conclusion_number}, მისამართი: {task.drive_folder_path}",
+                #             level=Notification.Level.INFO
+                #         )
+                #
+                #     else:
+                #         self.request.user.notify(
+                #             initiator=self.request.user,
+                #             title="დასკვნა ვერ დაგენერირდა",
+                #             message=f"დასკვნა ვერ დაგენერირდა, {response}, {response_rename_folder}",
+                #             level=Notification.Level.INFO
+                #         )
 
-                    else:
-                        self.request.user.notify(
-                            initiator=self.request.user,
-                            title="დასკვნა ვერ დაგენერირდა",
-                            message=f"დასკვნა ვერ დაგენერირდა, {response}, {response_rename_folder}",
-                            level=Notification.Level.INFO
-                        )
 
-
-                return Response({"drive_api_response": str(response), "rename_folder_response": response_rename_folder}, status=status.HTTP_200_OK)
+                return Response({"rename_folder_response": response_rename_folder}, status=status.HTTP_200_OK)
+                # return Response({"drive_api_response": str(response), "rename_folder_response": response_rename_folder}, status=status.HTTP_200_OK)
             except Exception as e:
 
                 self.request.user.notify(
