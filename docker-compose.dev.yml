@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:15
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data/"
+
+  api:
+    build: .
+    image: django-docker
+    env_file: .env
+    environment:
+      - "DJANGO_DEBUG=true"
+    restart: unless-stopped
+    command: ["/docker-cmd.sh", "--debug"]
+    volumes:
+      - "media-data:/var/www/media"
+      - "./ManagerX-api:/usr/src/ManagerX-api"  # mount the source code for watching changes
+      - ./rclone/config:/rclone/config
+    ports:
+      - "8000:8000"
+
+  celery:
+    container_name: worker
+    build: .
+    image: django-docker
+    env_file: .env
+    command: celery -A ManagerX-api worker -l DEBUG
+    volumes:
+      - "./ManagerX-api:/usr/src/ManagerX-api"
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/
+    depends_on:
+      - redis
+      - rabbit
+      - api
+
+  # Redis - result backend
+  redis:
+    image: redis:latest
+    hostname: redis
+    expose:
+      - 6379
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:latest
+    expose:
+      - 15672
+      - 5672
+
+
+  rclone:
+    image: rclone/rclone:latest
+    container_name: rclone
+    volumes:
+      - ./rclone/config:/config/rclone
+      - ./rclone/logs:/logs
+      - ./rclone/cache:/root/.cache/rclone # This is for the WebUI, not VFS
+      - /Users/guluadim/mnt:/hostfs:shared
+      - /var/cache/rclone:/vfsCache
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - /etc/fuse.conf:/etc/fuse.conf:ro
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    command:
+      - rcd
+      - --rc-web-gui
+      - --rc-web-gui-no-open-browser
+      - --rc-addr=:$RCLONE_PORT
+      - --rc-user=$RCLONE_USERNAME
+      - --rc-pass=$RCLONE_PASSWORD
+      - --log-file=/logs/rclone.log
+      - --log-level=NOTICE
+      - --cache-dir=/vfsCache
+    expose:
+      - 5572
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  rclone_initializer:
+    build:
+      context: ./rclone
+    container_name: rclone_initializer
+    env_file:
+      - .env
+    volumes:
+      - ./rclone/mounts.json:/app/mounts.json
+    restart: unless-stopped
+    depends_on:
+      - rclone
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - portainer_data:/portainer_data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  media-data:
+  portainer_data:

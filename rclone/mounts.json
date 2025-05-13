@@ -1,0 +1,13 @@
+[
+  {
+    "fs": "GoogleDrive:",
+    "mountPoint": "/hostfs/gdrive/gdrive_0",
+    "mountOpt": {
+      "AllowOther": true,
+      "AllowNonEmpty": true
+    },
+    "vfsOpt": {
+      "CacheMode": "full"
+    }
+  }
+]
